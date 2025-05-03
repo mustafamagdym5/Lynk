@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .delivery-map-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    #delivery-map {
+        height: 600px;
+        margin-bottom: 25px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .delivery-list {
+        margin-top: 30px;
+    }
+    
+    .delivery-card {
+        border-left: 4px solid #FF5000;
+        padding: 15px;
+        margin-bottom: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .delivery-card h5 {
+        margin-bottom: 10px;
+    }
+    
+    .delivery-card p {
+        margin-bottom: 5px;
+    }
+    
+    .status-badge {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-accepted {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .status-processing {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .action-btn {
+        margin-top: 10px;
+        padding: 5px 15px;
+        font-size: 14px;
+    }
+</style>
+
+<div class="delivery-map-container">
+    <h2>My Active Deliveries</h2>
+    
+    <div id="delivery-map"></div>
+    
+    <div class="delivery-list">
+        {% for delivery in active_deliveries %}
+        <div class="delivery-card">
+            <h5>Delivery #{{ delivery.id }}</h5>
+            <p><strong>Customer:</strong> {{ delivery.sender.username }}</p>
+            <p><strong>Distance:</strong> {{ delivery.distance }} km</p>
+            <p><strong>Fee:</strong> {{ delivery.delivery_fee }} EGP</p>
+            <span class="status-badge status-{{ delivery.status }}">
+                {{ delivery.get_status_display }}
+            </span>
+            
+            {% if delivery.status == 'accepted' %}
+            <button class="btn btn-sm btn-primary action-btn start-delivery-btn" data-delivery-id="{{ delivery.id }}">
+                Start Delivery
+            </button>
+            {% elif delivery.status == 'processing' %}
+            <button class="btn btn-sm btn-success action-btn complete-delivery-btn" data-delivery-id="{{ delivery.id }}">
+                Mark as Delivered
+            </button>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="alert alert-info">
+            You don't have any active deliveries at the moment.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map centered on delivery person's location
+        var map = L.map('delivery-map').setView([{{ delivery_person_location.0 }}, {{ delivery_person_location.1 }}], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Custom icons
+        var deliveryIcon = L.divIcon({
+            className: 'delivery-marker',
+            html: '<div style="background-color: #4CAF50; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"><i class="fas fa-truck" style="color: white; font-size: 12px; display: flex; justify-content: center; align-items: center; height: 100%;"></i></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        var customerIcon = L.divIcon({
+            className: 'customer-marker',
+            html: '<div style="background-color: #FF5000; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        // Add delivery person marker
+        var deliveryMarker = L.marker([{{ delivery_person_location.0 }}, {{ delivery_person_location.1 }}], {
+            icon: deliveryIcon,
+            draggable: false
+        }).addTo(map).bindPopup("Your Location");
+
+        // Add customer markers and routes
+        {% for delivery in active_deliveries %}
+        var customerMarker{{ delivery.id }} = L.marker([{{ delivery.sender.latitude }}, {{ delivery.sender.longitude }}], {
+            icon: customerIcon
+        }).addTo(map).bindPopup("Customer: {{ delivery.sender.username }}");
+
+        L.Routing.control({
+            waypoints: [
+                L.latLng({{ delivery_person_location.0 }}, {{ delivery_person_location.1 }}),
+                L.latLng({{ delivery.sender.latitude }}, {{ delivery.sender.longitude }})
+            ],
+            routeWhileDragging: false,
+            show: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            lineOptions: {
+                styles: [{color: '#FF5000', opacity: 0.7, weight: 5}]
+            },
+            createMarker: function() { return null; }
+        }).addTo(map);
+        {% endfor %}
+
+        // Update delivery person's location periodically
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        var newLatLng = new L.LatLng(position.coords.latitude, position.coords.longitude);
+                        deliveryMarker.setLatLng(newLatLng);
+                        
+                        // Send update to server
+                        fetch('{% url "delivery:update_location" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            })
+                        });
+                    },
+                    function(error) {
+                        console.error("Geolocation error:", error);
+                    }
+                );
+            }
+        }
+
+        // Update every 10 seconds
+        updateLocation();
+        setInterval(updateLocation, 10000);
+
+        // Handle delivery status buttons
+        document.querySelectorAll('.start-delivery-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const deliveryId = this.dataset.deliveryId;
+                updateDeliveryStatus(deliveryId, 'processing');
+            });
+        });
+
+        document.querySelectorAll('.complete-delivery-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const deliveryId = this.dataset.deliveryId;
+                updateDeliveryStatus(deliveryId, 'completed');
+            });
+        });
+
+        function updateDeliveryStatus(deliveryId, status) {
+            fetch(`/delivery/update-status/${deliveryId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ status: status })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    window.location.reload();
+                } else {
+                    alert('Error updating status: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating status');
+            });
+        }
+    });
+</script>
+{% endblock %}

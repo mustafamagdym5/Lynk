@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.map-container {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+</style>
+
+<div class="map-container">
+    <div id="map" style="height: 600px; width: 800px;"></div>
+    <form id="locationForm" method="post" action="{% url 'location:choose_location' %}">
+        {% csrf_token %}
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
+        <button type="submit" class="btn btn-success mt-3" id="submitLocation" disabled>
+            Confirm Location
+        </button>
+    </form>
+</div>
+
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+  var map = L.map('map').setView([30.033, 31.233], 13); // Cairo
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker = null;
+
+    map.on('click', function(e) {
+        var latlng = e.latlng;
+
+        if (marker) {
+            marker.setLatLng(latlng);
+        } else {
+            marker = L.marker(latlng).addTo(map).bindPopup("You selected this point").openPopup();
+        }
+
+        // Enable the submit button when a location is chosen
+        document.getElementById("submitLocation").disabled = false;
+
+        // Set the latitude and longitude values to hidden inputs
+        document.getElementById("latitude").value = latlng.lat;
+        document.getElementById("longitude").value = latlng.lng;
+});
+
+</script>
+{% endblock %}

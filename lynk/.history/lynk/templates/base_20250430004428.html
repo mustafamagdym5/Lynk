@@ -1,0 +1,462 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Lynk is a delivery management system">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="icon" href="{% static 'logo/logo.png' %}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <title>Lynk</title>
+    <style>
+        :root {
+            --lynk-primary: #FF5000;
+            --lynk-primary-light: #ff8240;
+            --lynk-primary-dark: #cc4000;
+            --lynk-light: #ffffff;
+            --lynk-dark: #1a1a1a;
+            --lynk-gray: #f8f9fa;
+            --lynk-accent: #4a6fa5;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-color: var(--lynk-gray);
+            color: var(--lynk-dark);
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+        }
+
+        .full-width-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            width: 100%;
+            background-color: var(--lynk-light);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .lynk-navbar {
+            padding: 0.75rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .lynk-navbar.scrolled {
+            padding: 0.5rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            padding: 2rem 0;
+        }
+
+        footer {
+            width: 100%;
+            background: linear-gradient(135deg, var(--lynk-dark), #2a2a2a);
+            color: var(--lynk-light);
+            padding: 3rem 0 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        footer:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            margin: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--lynk-primary), var(--lynk-accent));
+        }
+
+        .lynk-brand {
+            font-weight: 700;
+            font-size: 1.8rem;
+            font-family: 'Playfair Display', serif;
+            color: var(--lynk-primary);
+            letter-spacing: -0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .lynk-brand-icon {
+            display: inline-flex;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--lynk-primary), var(--lynk-primary-light));
+            color: var(--lynk-light);
+            border-radius: 8px;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            transform: rotate(-5deg);
+            box-shadow: 0 4px 8px rgba(255, 80, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .lynk-brand:hover .lynk-brand-icon {
+            transform: rotate(0deg);
+        }
+
+        .location-btn {
+            position: relative;
+            background: rgba(255, 80, 0, 0.1);
+            color: var(--lynk-primary);
+            border-radius: 10px;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .location-btn:hover {
+            background-color: var(--lynk-primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 80, 0, 0.3);
+        }
+
+        .location-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: rgba(255, 80, 0, 0.2);
+            border-radius: 10px;
+            opacity: 0;
+            z-index: -1;
+        }
+
+        .location-btn:hover .location-pulse {
+            animation: pulse 1.5s ease-out infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            70% {
+                transform: scale(1.15);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        .lynk-search-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .lynk-search-input {
+            border-radius: 50px !important;
+            padding-left: 1.5rem;
+            padding-right: 3rem;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+            height: 45px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .lynk-search-input:focus {
+            border-color: var(--lynk-primary);
+            box-shadow: 0 0 0 0.25rem rgba(255, 80, 0, 0.15);
+        }
+
+        .lynk-search-btn {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50% !important;
+            background: linear-gradient(135deg, var(--lynk-primary), var(--lynk-primary-light));
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .lynk-search-btn:hover {
+            background: linear-gradient(135deg, var(--lynk-primary-dark), var(--lynk-primary));
+            transform: scale(1.05);
+        }
+
+        .lynk-cart-link {
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+        }
+
+        .lynk-cart-link:hover {
+            background: rgba(255, 80, 0, 0.1);
+        }
+
+        .lynk-cart-icon {
+            font-size: 1.2rem;
+            color: var(--lynk-dark);
+            transition: all 0.3s ease;
+        }
+
+        .lynk-cart-link:hover .lynk-cart-icon {
+            color: var(--lynk-primary);
+            transform: scale(1.1);
+        }
+
+        .lynk-cart-badge {
+            position: absolute;
+            top: -5px;
+            right: 0;
+            background: var(--lynk-primary);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .lynk-cart-link:hover .lynk-cart-badge {
+            transform: scale(1.1);
+            box-shadow: 0 2px 5px rgba(255, 80, 0, 0.3);
+        }
+
+        .lynk-account-dropdown {
+            position: relative;
+        }
+
+        .lynk-account-toggle {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .lynk-account-toggle:hover {
+            background: rgba(255, 80, 0, 0.1);
+        }
+
+        .lynk-account-icon {
+            font-size: 1.2rem;
+            color: var(--lynk-dark);
+            transition: all 0.3s ease;
+        }
+
+        .lynk-account-toggle:hover .lynk-account-icon {
+            color: var(--lynk-primary);
+        }
+
+        .lynk-dropdown-menu {
+            border: none;
+            border-radius: 12px;
+            padding: 0.5rem 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 0.25rem;
+            min-width: 200px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .lynk-dropdown-item {
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            color: var(--lynk-dark);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .lynk-dropdown-item i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .lynk-dropdown-item:hover, .lynk-dropdown-item:focus {
+            background: linear-gradient(135deg, var(--lynk-primary), var(--lynk-primary-light));
+            color: white;
+            padding-left: 1.75rem;
+        }
+
+        @media (max-width: 992px) {
+            .lynk-navbar {
+                padding: 0.5rem 1rem;
+            }
+            
+            .lynk-search-container {
+                margin: 0.5rem 0;
+                order: 3;
+                width: 100%;
+            }
+            
+            .lynk-cart-link, .lynk-account-toggle {
+                padding: 0.5rem;
+                margin-right: 0.25rem;
+            }
+            
+            .lynk-cart-link span, 
+            .lynk-account-toggle span,
+            .location-btn .btn-text {
+                display: none;
+            }
+            
+            .lynk-brand {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="lynk-decor decor-1"></div>
+    <div class="lynk-decor decor-2"></div>
+
+    <header>
+        {% block header %}
+        <nav class="navbar navbar-expand-lg navbar-light lynk-navbar sticky-top" id="mainNav">
+            <div class="container-fluid">
+                <div class="d-flex align-items-center">
+                    <a class="navbar-brand lynk-brand me-3" href="/">
+                        <span class="lynk-brand-icon">L</span>ynk
+                    </a>
+                </div>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#lynkNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="lynkNavbar">
+                    <ul class="navbar-nav me-auto">
+                        <!-- Left aligned items can go here -->
+                    </ul>
+                    
+                    <!-- Centered Search -->
+                    <div class="d-flex justify-content-center w-100 mx-4">
+                        <div class="lynk-search-container">
+                            <form method="get" action="#" class="d-flex my-2 my-lg-0">
+                                <input class="form-control lynk-search-input" type="search" placeholder="Search for products..." aria-label="Search" name="q">
+                                <button class="btn lynk-search-btn" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <ul class="navbar-nav ms-auto d-flex align-items-center">
+                        {% if request.user.is_authenticated and request.user.role == 'customer' %}
+                        {% block cart %}
+                        <li class="nav-item">
+                            <a class="nav-link lynk-cart-link" href="#">
+                                <i class="fas fa-shopping-cart lynk-cart-icon"></i>
+                                <span class="d-none d-lg-inline ms-1">Cart</span>
+                                <span class="lynk-cart-badge">
+                                    {% if cart_quantity %}{{ cart_quantity }}{% else %}0{% endif %}
+                                </span>
+                            </a>
+                        </li>
+                        {% endblock cart %}
+                        {% endif %}
+                        
+                        <li class="nav-item dropdown lynk-account-dropdown">
+                            {% if user.is_authenticated %}
+                            <a class="nav-link lynk-account-toggle" href="{% url 'users:logout' %}">
+                                <i class="fas fa-sign-in-alt lynk-account-icon"></i>
+                                <span class="d-none d-lg-inline ms-1">Logout</span>
+                            </a>
+                            {% else %}
+                            <a class="nav-link lynk-account-toggle" href="{% url 'users:home_users' %}">
+                                <i class="fas fa-sign-in-alt lynk-account-icon"></i>
+                                <span class="d-none d-lg-inline ms-1">Login</span>
+                            </a>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        {% endblock header %}
+    </header>
+
+    <main class="py-4">
+        <div class="container-fluid px-0">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Lynk. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('mainNav');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Initialize dropdowns
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all dropdowns
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+
+            // Initialize tooltips if needed
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+</body>
+</html>

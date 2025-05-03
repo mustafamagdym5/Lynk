@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Payment Successful</h2>
+    
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% else %}
+    <div class="alert alert-success">
+        Thank you for your purchase!
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Order Details</h5>
+            <p>Product ID: {{ product_id }}</p>
+            
+            {% if customer %}
+            <p>Customer: {{ customer.name|default:"No name provided" }}</p>
+            <p>Email: {{ customer.email|default:"No email provided" }}</p>
+            {% endif %}
+            
+            <a href="{% url 'category:all_products' %}" class="btn btn-primary">
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

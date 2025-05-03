@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold mb-2" style="font-size: 2rem; letter-spacing: -0.5px;">Add New Prodcut</h2>
+            <p class="text-muted mb-0">Fill out the form to add a new product to your inventory</p>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="bg-white rounded-4 p-5 mb-5" style="box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04); border: 1px solid rgba(0, 0, 0, 0.03); max-width: 800px; margin: 0 auto;">
+        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <!-- Crispy Form with Custom Styling -->
+            <div class="row g-4">
+                {{ form|crispy }}
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-end mt-5" style="gap: 16px;">
+                <a href="{% url 'vendor:vendor_home' %}" class="btn px-4 py-3 fw-semibold"
+                    style="background: rgba(108, 117, 125, 0.1); color: #6c757d; border-radius: 12px; border: none;">
+                    Cancel
+                </a>
+                <button type="submit" class="btn px-4 py-3 fw-semibold"
+                    style="background-color: var(--lynk-primary); color: white; border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(255, 80, 0, 0.2);">
+                    Add Product
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Custom Form Styling */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--lynk-primary);
+        box-shadow: 0 0 0 0.2rem rgba(255, 80, 0, 0.1);
+    }
+
+    /* Custom file input */
+    .custom-file-input {
+        opacity: 0;
+        position: absolute;
+        z-index: -1;
+    }
+
+    .custom-file-label {
+        border: 1px dashed #e0e0e0;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .custom-file-label:hover {
+        border-color: var(--lynk-primary);
+        background: rgba(255, 80, 0, 0.03);
+    }
+
+    /* Button hover effects */
+    a[style*="rgba(108, 117, 125, 0.1)"]:hover {
+        background-color: #6c757d !important;
+        color: white !important;
+    }
+
+    button[style*="var(--lynk-primary)"]:hover {
+        background-color: var(--lynk-primary-dark) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(255, 80, 0, 0.3) !important;
+    }
+</style>
+
+<script>
+    // Custom file input display
+    document.querySelector('.custom-file-input')?.addEventListener('change', function(e) {
+        var fileName = e.target.files[0] ? e.target.files[0].name : "No file selected";
+        document.querySelector('.custom-file-label').textContent = fileName;
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cart %} {% endblock cart %}
+{% block form %} {% endblock form %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container delivery-interface">
+    <!-- Delivery Dashboard Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold"><i class="fas fa-truck-fast me-2" style="color: var(--lynk-primary);"></i> Delivery Requests</h2>
+            <p class="text-muted">Available delivery requests in your area</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="status-indicator d-inline-block px-3 py-2 rounded-pill" 
+                style="background: rgba(255, 80, 0, 0.1); color: var(--lynk-primary);">
+                <i class="fas fa-circle me-1" style="font-size: 0.7rem;"></i> 
+                <span id="statusText">Available for deliveries</span>
+            </div>
+        </div>
+    </div>
+
+    {% if delivery_requests %}
+    <!-- Active Requests Section -->
+    <div class="row">
+        {% for request in delivery_requests %}
+        <div class="col-lg-6 mb-4">
+            <div class="card request-card h-100 border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary mb-2">
+                                <i class="fas fa-clock me-1"></i> Ready for pickup
+                            </span>
+                            <h5 class="mb-1">Cart #{{ request.cart.id }}</h5>
+                            <small class="text-muted">Placed {{ request.cart.created_at|timesince }} ago</small>
+                        </div>
+                        <div class="text-end">
+                            <h4 class="text-success mb-0">{{ request.cart.total_price }} EGP</h4>
+                            <small class="text-muted">Earnings: {{ request.delivery_fee }} EGP</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100">
+                                <h6 class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-store me-2" style="color: var(--lynk-primary);"></i> Pickup
+                                </h6>
+                                <p class="mb-1">{{ request.order.vendor.name }}</p>
+                                <small class="text-muted">{{ request.order.vendor.address }}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 h-100">
+                                <h6 class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-map-marker-alt me-2" style="color: var(--lynk-primary);"></i> Dropoff
+                                </h6>
+                                <p class="mb-1">{{ request.order.customer.name }}</p>
+                                <small class="text-muted">{{ request.order.delivery_address }}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-light text-dark me-2">
+                                <i class="fas fa-box me-1"></i> {{ request.order.items.count }} items
+                            </span>
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-road me-1"></i> {{ request.distance }} km
+                            </span>
+                        </div>
+                        <div>
+                            <button class="btn btn-outline-danger btn-sm me-2 reject-btn" 
+                                    data-request-id="{{ request.id }}">
+                                <i class="fas fa-times me-1"></i> Reject
+                            </button>
+                            <button class="btn btn-primary btn-sm accept-btn" 
+                                    data-request-id="{{ request.id }}">
+                                <i class="fas fa-check me-1"></i> Accept
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm text-center py-5" style="border-radius: 16px;">
+                <div class="card-body">
+                    <div class="empty-state-icon mb-4">
+                        <i class="fas fa-box-open" style="font-size: 3rem; color: rgba(255, 80, 0, 0.3);"></i>
+                    </div>
+                    <h4 class="mb-3">No Delivery Requests Available</h4>
+                    <p class="text-muted mb-4">There are currently no delivery requests in your area. Please check back later.</p>
+                    <button class="btn btn-outline-primary" id="refreshBtn">
+                        <i class="fas fa-sync-alt me-2"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Delivery Interface Styles */
+    .delivery-interface {
+        padding: 2rem 0;
+    }
+    
+    .request-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--lynk-primary);
+    }
+    
+    .request-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .status-indicator {
+        transition: all 0.3s ease;
+    }
+    
+    .empty-state-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 80, 0, 0.05);
+        border-radius: 50%;
+    }
+    
+    .accept-btn {
+        background: linear-gradient(135deg, var(--lynk-primary), var(--lynk-primary-light));
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .accept-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 80, 0, 0.2);
+    }
+    
+    .reject-btn {
+        transition: all 0.3s ease;
+    }
+    
+    .reject-btn:hover {
+        background-color: #f8f9fa;
+    }
+    
+    #refreshBtn {
+        transition: all 0.3s ease;
+    }
+    
+    #refreshBtn:hover {
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .delivery-interface {
+            padding: 1rem;
+        }
+        
+        .request-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+
+<script>
+    document.querySelectorAll('.accept-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const requestId = this.dataset.requestId;
+        const button = this;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Accepting';
+        button.disabled = true;
+
+        try {
+            const response = await fetch(`{% url 'delivery:accept_request' 0 %}`.replace('0', requestId), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.status === 'success' && data.checkout_url) {
+                // Redirect the delivery person to a confirmation page
+                window.location.href = "{% url 'delivery:delivery_accepted_confirmation' %}";
+                
+                // In a real app, you might want to notify the customer via WebSocket
+                // For now, the customer's polling will detect the status change
+            } else {
+                throw new Error(data.message || 'Failed to accept delivery');
+            }
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+            button.innerHTML = '<i class="fas fa-check me-1"></i> Accept';
+            button.disabled = false;
+        }
+    });
+});
+</script>
+
+{% endblock %}

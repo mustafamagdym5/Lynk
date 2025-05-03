@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="card border-0 shadow-sm mx-auto" style="max-width: 500px; border-radius: 16px;">
+        <div class="card-body p-4">
+            <div class="spinner-border text-primary mb-4" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h3 class="mb-3">Waiting for Delivery Confirmation</h3>
+            <p class="text-muted mb-4">
+                We've sent your request to {{ delivery_request.recipient.username }}.
+                They'll respond shortly.
+            </p>
+            
+            <div class="alert alert-light mb-4 text-start">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Delivery Person:</span>
+                    <strong>{{ delivery_request.recipient.username }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Distance:</span>
+                    <strong>{{ delivery_request.distance }} km</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>Delivery Fee:</span>
+                    <strong>{{ delivery_request.delivery_fee }} EGP</strong>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'home:select_delivery' %}" class="btn btn-outline-secondary">
+                    Choose Different Delivery
+                </a>
+                <a href="#" class="btn btn-primary" id="refreshStatus">
+                    Refresh Status
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshBtn = document.getElementById('refreshStatus');
+    
+    function checkStatus() {
+        fetch(`/delivery/request/{{ delivery_request.id }}/status/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'pending') {
+                    if (data.status === 'accepted') {
+                        window.location.href = "{% url 'home:delivery_accepted' %}";
+                    } else {
+                        window.location.href = "{% url 'customer:delivery_rejected' %}";
+                    }
+                }
+            });
+    }
+    
+    refreshBtn.addEventListener('click', checkStatus);
+    
+    // Check status every 5 seconds
+    setInterval(checkStatus, 5000);
+});
+</script>
+{% endblock %}

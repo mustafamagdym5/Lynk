@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'category:all_items' %}" class="text-decoration-none me-3">
+                    <i class="fas fa-arrow-left lynk-orange"></i>
+                </a>
+                <h2 class="mb-0 lynk-orange fw-bold">Add to Cart</h2>
+            </div>
+            
+            <div class="card border-0 shadow-lynk rounded-3 overflow-hidden">
+                <div class="row g-0">
+                    <div class="col-md-5 bg-light d-flex align-items-center justify-content-center p-4">
+                        {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="img-fluid rounded-2" style="max-height: 250px; object-fit: contain;">
+                        {% else %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-image fa-5x mb-3"></i>
+                            <p>No image available</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-7">
+                        <div class="card-body p-4">
+                            <h3 class="card-title fw-bold mb-3">{{ item.name }}</h3>
+                            
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="fs-5 fw-bold lynk-orange me-2">{{ item.get_discounted_price|floatformat:0 }} EGP</span>
+                                {% if item.discount > 0 %}
+                                <span class="text-decoration-line-through text-muted me-2">{{ item.price|floatformat:0 }} EGP</span>
+                                <span class="badge bg-success">Save {{ item.discount }}%</span>
+                                {% endif %}
+                            </div>
+                            
+                            <p class="text-muted mb-4">{{ item.description|default:"No description available" }}</p>
+                            
+                            <form method="post" class="mt-4">
+                                {% csrf_token %}
+                                <div class="mb-4">
+                                    <label for="{{ form.quantity.id_for_label }}" class="form-label fw-bold">Quantity</label>
+                                    <div class="input-group" style="max-width: 150px;">
+                                        <button class="btn btn-outline-secondary quantity-btn" type="button" id="decrement">-</button>
+                                        {{ form.quantity }}
+                                        <button class="btn btn-outline-secondary quantity-btn" type="button" id="increment">+</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-3 d-md-flex">
+                                    <button type="submit" class="btn btn-lynk-orange flex-grow-1 py-2">
+                                        <i class="fas fa-cart-plus me-2"></i> Add to Cart
+                                    </button>
+                                    <a href="{% url 'category:all_items' %}" class="btn btn-outline-secondary flex-grow-1 py-2">
+                                        Continue Shopping
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .shadow-lynk {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .rounded-3 {
+        border-radius: 16px !important;
+    }
+    
+    .quantity-btn {
+        width: 40px;
+        font-weight: bold;
+    }
+    
+    #id_quantity {
+        text-align: center;
+        border-left: 0;
+        border-right: 0;
+        border-color: #dee2e6;
+    }
+    
+    .btn-lynk-orange {
+        background-color: var(--lynk-primary);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-lynk-orange:hover {
+        background-color: var(--lynk-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 80, 0, 0.3);
+    }
+    
+    .lynk-orange {
+        color: var(--lynk-primary);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Quantity increment/decrement buttons
+        const decrementBtn = document.getElementById('decrement');
+        const incrementBtn = document.getElementById('increment');
+        const quantityInput = document.getElementById('id_quantity');
+        
+        decrementBtn.addEventListener('click', function() {
+            let value = parseInt(quantityInput.value);
+            if (value > 1) {
+                quantityInput.value = value - 1;
+            }
+        });
+        
+        incrementBtn.addEventListener('click', function() {
+            let value = parseInt(quantityInput.value);
+            quantityInput.value = value + 1;
+        });
+    });
+</script>
+{% endblock %}

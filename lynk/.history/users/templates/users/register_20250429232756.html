@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<style>
+    /* Registration Page Specific Styles */
+    .register-page {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 56px); /* Adjust for navbar height */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem 0;
+    }
+
+    .register-container {
+        width: 100%;
+        max-width: 800px;
+        margin-top: 20px; /* Add space below navbar */
+    }
+
+    .register-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .register-header {
+        background-color: #FF5000;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .register-title {
+        font-weight: 700;
+        font-size: 2.2rem;
+        margin: 0;
+        color: white; /* Make "Create Your Account" white */
+    }
+
+    .register-body {
+        padding: 2.5rem;
+    }
+
+    .btn-register {
+        background-color: #FF5000;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .btn-register:hover {
+        background-color: white;
+        color: #FF5000;
+        border: 2px solid #FF5000;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 80, 0, 0.2);
+    }
+
+    .btn-register:active {
+        background-color: #e04800; /* Slightly darker primary color for active state */
+        color: white;
+        border-color: #e04800;
+        transform: translateY(0);
+    }
+
+    .btn-register:focus {
+        outline: none; /* Remove the default focus outline */
+        box-shadow: 0 0 0 0.25rem rgba(255, 80, 0, 0.5); /* Add a subtle focus shadow */
+        border-color: #FF5000; /* Optional: Match the border color */
+    }
+
+    .login-link {
+        text-align: center;
+    }
+
+    .login-link a {
+        color: #FF5000;
+        font-weight: 500;
+    }
+</style>
+
+<div class="register-page">
+    <div class="register-container">
+        <div class="register-card shadow-lg">
+            <div class="register-header">
+                <h1 class="register-title">Create Your Account</h1>
+            </div>
+            <div class="register-body">
+                <form method="post" id="registrationForm">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+    
+                    <div class="d-grid gap-3 mt-4">
+                        <button type="submit" class="btn btn-register py-3">
+                            Register Now
+                        </button>
+                    </div>
+                </form>
+                <div class="login-link pt-3">
+                    Already have an account? <a href="{% url 'users:login' %}">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

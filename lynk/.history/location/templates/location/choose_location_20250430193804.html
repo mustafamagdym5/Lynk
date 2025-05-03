@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    #map { 
+        height: 500px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+    .search-container {
+        margin: 20px 0;
+        display: flex;
+        gap: 10px;
+    }
+    #search-input {
+        flex-grow: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    #search-button {
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .coordinates-container {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        margin: 15px 0;
+    }
+    #save-button {
+        padding: 10px 20px;
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .map-instructions {
+        margin-bottom: 15px;
+        color: #666;
+    }
+</style>
+
+<h2>Select Your Location</h2>
+<p class="map-instructions">Click on the map to place your location marker. You can drag the marker or click elsewhere to change it.</p>
+
+<div class="search-container">
+    <input type="text" id="search-input" placeholder="Search for an address or place...">
+    <button id="search-button">Search</button>
+</div>
+
+<div id="map"></div>
+
+<div class="coordinates-container">
+    <strong>Selected Location:</strong>
+    <div id="coordinates">No location selected yet</div>
+</div>
+
+<button id="save-button">Save My Location</button>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script>
+    // Initialize the map
+    var map = L.map('map').setView([51.505, -0.09], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Variables for marker and coordinates
+    var marker = null;
+    var currentLat = null;
+    var currentLng = null;
+
+    // Function to create or update marker
+    function updateMarker(lat, lng) {
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng], {
+                draggable: true
+            }).addTo(map);
+            
+            // Update coordinates when marker is dragged
+            marker.on('dragend', function(e) {
+                const newLatLng = e.target.getLatLng();
+                updateCoordinates(newLatLng.lat, newLatLng.lng);
+            });
+        }
+        map.setView([lat, lng], 15);
+        updateCoordinates(lat, lng);
+    }
+
+    // Function to update coordinates display
+    function updateCoordinates(lat, lng) {
+        currentLat = lat;
+        currentLng = lng;
+        document.getElementById('coordinates').innerHTML = 
+            `Latitude: ${lat.toFixed(6)}<br>Longitude: ${lng.toFixed(6)}`;
+    }
+
+    // Handle map clicks
+    map.on('click', function(e) {
+        updateMarker(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Handle search functionality
+    document.getElementById('search-button').addEventListener('click', function() {
+        const query = document.getElementById('search-input').value.trim();
+        if (!query) return;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const firstResult = data[0];
+                    updateMarker(parseFloat(firstResult.lat), parseFloat(firstResult.lon));
+                } else {
+                    alert('Location not found. Please try a different search.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error searching for location. Please try again.');
+            });
+    });
+
+    // Handle save functionality
+    document.getElementById('save-button').addEventListener('click', function() {
+        if (!currentLat || !currentLng) {
+            alert('Please select a location on the map first.');
+            return;
+        }
+
+        // Create a form dynamically and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'location:save_location' %}";
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrfmiddlewaretoken';
+        csrf.value = '{{ csrf_token }}';
+        form.appendChild(csrf);
+        
+        const latInput = document.createElement('input');
+        latInput.type = 'hidden';
+        latInput.name = 'latitude';
+        latInput.value = currentLat;
+        form.appendChild(latInput);
+        
+        const lngInput = document.createElement('input');
+        lngInput.type = 'hidden';
+        lngInput.name = 'longitude';
+        lngInput.value = currentLng;
+        form.appendChild(lngInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    });
+
+    // Initialize with user's current location if available
+    {% if request.user.latitude and request.user.longitude %}
+        updateMarker({{ request.user.latitude }}, {{ request.user.longitude }});
+    {% endif %}
+</script>
+{% endblock %}

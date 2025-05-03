@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block form %}
+    <form method="get" action="{% url 'category:search_results' %}" class="d-flex mx-lg-3 my-2 my-lg-0 flex-grow-1">
+        <div class="input-group">
+            <input class="form-control rounded-start-3 py-2" type="search" placeholder="Search for products..." 
+                aria-label="Search" name="q" value="{{ query }}" style="border: 1px solid #e0e0e0;">
+            <button class="btn lynk-search-btn rounded-end-3" type="submit" 
+                    style="background-color: var(--lynk-primary); color: white; border: none;">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </form>
+{% endblock form %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Header Section -->
+    <div class="mb-5">
+        <h1 class="fw-bold mb-2" style="font-size: 2rem; letter-spacing: -0.5px;">Search Results</h1>
+        <p class="text-muted">Showing results for <span class="fw-semibold" style="color: var(--lynk-primary);">"{{ query }}"</span></p>
+    </div>
+
+    {% if results %}
+        <!-- Results Grid -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for item in results %}
+                <div class="col">
+                    <div class="card h-100 border-0" style="border-radius: 16px; overflow: hidden; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);">
+                        <div class="position-relative">
+                            {% if item.image %}
+                                <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" 
+                                     style="height: 220px; object-fit: cover; width: 100%;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center" 
+                                     style="height: 220px; background: linear-gradient(135deg, #f9f9f9, #f0f0f0);">
+                                    <i class="fas fa-image fa-3x" style="color: rgba(0, 0, 0, 0.08);"></i>
+                                </div>
+                            {% endif %}
+                            <div class="position-absolute top-0 end-0 m-3">
+                                <span class="badge rounded-pill px-3 py-2 fw-semibold" 
+                                      style="background-color: var(--lynk-primary); color: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                                    {{ item.get_discounted_price|floatformat:0 }} EGP
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold mb-2" style="font-size: 1.1rem;">
+                                <a href="{% url 'category:item' item.category.slug item.slug %}" 
+                                   style="color: inherit; text-decoration: none;">
+                                    {{ item.name }}
+                                </a>
+                            </h5>
+                            <p class="card-text text-muted mb-3" style="font-size: 0.9rem; line-height: 1.5;">
+                                {{ item.description|truncatechars:100 }}
+                            </p>
+                            <a href="{% url 'category:item' item.category.slug item.slug %}" 
+                               class="btn btn-sm px-3 py-2 fw-semibold" 
+                               style="background: rgba(255, 80, 0, 0.1); color: var(--lynk-primary); border-radius: 10px; border: none;">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Search results pagination" class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link rounded-3 me-2" 
+                       href="?q={{ query }}&amp;page={{ page_obj.previous_page_number }}" 
+                       style="border: none; background: rgba(255, 80, 0, 0.1); color: var(--lynk-primary);">
+                        Previous
+                    </a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link rounded-3" 
+                          style="background-color: var(--lynk-primary); border: none;">
+                        Page {{ page_obj.number }} of {{ paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link rounded-3 ms-2" 
+                       href="?q={{ query }}&amp;page={{ page_obj.next_page_number }}" 
+                       style="border: none; background: rgba(255, 80, 0, 0.1); color: var(--lynk-primary);">
+                        Next
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <!-- No Results State -->
+        <div class="text-center py-5" style="max-width: 500px; margin: 0 auto;">
+            <div class="mb-4" style="width: 100px; height: 100px; background: rgba(255, 80, 0, 0.05); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                <i class="fas fa-search fa-3x" style="color: rgba(255, 80, 0, 0.3);"></i>
+            </div>
+            <h4 class="h5 fw-semibold mb-2">No results found</h4>
+            <p class="text-muted mb-4" style="max-width: 300px; margin: 0 auto;">We couldn't find any items matching "{{ query }}"</p>
+            <a href="{% url 'home:home_page' %}" class="btn px-4 py-3 fw-semibold" 
+               style="background-color: var(--lynk-primary); color: white; border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(255, 80, 0, 0.2);">
+                Back to Home
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Card hover effect */
+    .card {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(255, 80, 0, 0.1) !important;
+    }
+    
+    /* Button hover effects */
+    a[style*="rgba(255, 80, 0, 0.1)"]:hover {
+        background-color: var(--lynk-primary) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(255, 80, 0, 0.2);
+    }
+    
+    /* Pagination hover */
+    .page-link:hover {
+        background-color: var(--lynk-primary) !important;
+        color: white !important;
+    }
+</style>
+{% endblock %}

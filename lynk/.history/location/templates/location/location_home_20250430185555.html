@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h3>Add your location page</h3>
+    <p><a href="{% url 'location:add_location' %}?next={{ next }}">Add My Location</a></p>
+    <p><a href="{% url 'location:choose_location' %}?next={{ next }}">Choose a location from the map</a></p>
+
+{% endblock %}

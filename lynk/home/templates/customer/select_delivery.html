@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="delivery-container" style="
+    max-width: 600px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+">
+    <!-- Header Section -->
+    <div style="
+        padding: 1.5rem;
+        background: #f8f8f8;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    ">
+        <h2 style="
+            color: #1a1a1a;
+            font-size: 1.5rem;
+            margin: 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        ">
+            <svg style="width: 24px; height: 24px; margin-right: 12px;" viewBox="0 0 24 24" fill="#FF5000">
+                <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm-9-1a2 2 0 0 1 4 0v1h-4V6zm9 13H5V9h3v1a1 1 0 0 0 2 0V9h4v1a1 1 0 0 0 2 0V9h3v10z"/>
+            </svg>
+            Choose Your Delivery
+        </h2>
+    </div>
+
+    <!-- Main Content -->
+    <div style="padding: 1.5rem;">
+        {% if delivery_list %}
+            <form method="post" action="{% url 'home:select_delivery' %}" id="deliveryForm">
+                {% csrf_token %}
+                <input type="hidden" name="payment_id" value="{{ request.GET.payment_id }}">
+                <input type="hidden" name="distance" value="{{ item.distance_km }}">
+                <input type="hidden" name="cost" value="{{ item.cost }}">
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <p style="
+                        color: #666;
+                        margin-bottom: 1rem;
+                        font-weight: 600;
+                        font-size: 1rem;
+                    ">
+                        Available Deliveries:
+                    </p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1rem;" id="deliveryOptions">
+                        {% for item in delivery_list %}
+                        <!-- Delivery Card -->
+                        <div class="delivery-card" data-delivery-id="{{ item.delivery.id }}" style="
+                            background: white;
+                            border-radius: 12px;
+                            padding: 1.25rem;
+                            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+                            border: 1px solid rgba(0, 0, 0, 0.08);
+                            transition: all 0.2s ease;
+                            cursor: pointer;
+                        ">
+                            <input type="hidden" name="distance" value="{{ item.distance_km }}">
+                            <input type="hidden" name="cost" value="{{ item.cost }}">
+                            <div style="display: flex; align-items: flex-start;">
+                                <div style="margin-right: 1rem; margin-top: 2px;">
+                                    <input type="radio" name="delivery_person" 
+                                        value="{{ item.delivery.id }}"
+                                        id="delivery_{{ item.delivery.id }}">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label for="delivery_{{ item.delivery.id }}" style="display: block; cursor: pointer;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                            <div style="font-weight: 600; color: #1a1a1a; font-size: 1.1rem;">
+                                                {{ item.delivery.username }}
+                                            </div>
+                                            <div style="color: #FF5000; font-weight: 600;">
+                                                {{ item.cost }} EGP
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="display: flex; gap: 1.5rem;">
+                                            <div style="display: flex; align-items: center; color: #555;">
+                                                <svg style="width: 16px; height: 16px; margin-right: 6px;" viewBox="0 0 24 24" fill="#555">
+                                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                                </svg>
+                                                {{ item.distance_km }} km
+                                            </div>
+                                            <div style="display: flex; align-items: center; color: #555;">
+                                                <svg style="width: 16px; height: 16px; margin-right: 6px;" viewBox="0 0 24 24" fill="#555">
+                                                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                                                    <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                                                </svg>
+                                                ~{{ item.estimated_time_min }} min
+                                            </div>
+
+                                            <div style="display: flex; align-items: center; color: #555;">
+                                                <svg style="width: 16px; height: 16px; margin-right: 6px;" viewBox="0 0 24 24" fill="#555">
+                                                    <path d="M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41L6 19l1.41-1.41L1.83 12 .41 13.41z"/>
+                                                </svg>
+                                                {{ item.vendor_count }} vendor{{ item.vendor_count|pluralize }}
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="submit" id="confirmBtn" style="
+                    background: #ddd;
+                    color: white;
+                    border: none;
+                    padding: 14px;
+                    font-size: 1rem;
+                    border-radius: 50px;
+                    cursor: not-allowed;
+                    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                    font-weight: 600;
+                    letter-spacing: 0.5px;
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin-top: 1.5rem;
+                " disabled>
+                    <svg style="width: 18px; height: 18px; margin-right: 8px;" viewBox="0 0 24 24" fill="white">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    Select a delivery person to confirm
+                </button>
+            </form>
+        {% else %}
+            <div style="
+                background: rgba(255, 80, 0, 0.05);
+                padding: 1rem;
+                border-radius: 8px;
+                border: 1px solid rgba(255, 80, 0, 0.1);
+                margin-bottom: 1.5rem;
+                display: flex;
+                align-items: center;
+            ">
+                <svg style="width: 24px; height: 24px; margin-right: 12px; flex-shrink: 0;" viewBox="0 0 24 24" fill="#FF5000">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <div>
+                    <div style="font-weight: 600; color: #1a1a1a;">No delivery persons available</div>
+                    <div style="color: #666; font-size: 0.9rem;">Please try again later or check back soon.</div>
+                </div>
+            </div>
+        {% endif %}
+
+        <a href="{% url 'payment:check_out' %}" style="
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            text-decoration: none;
+            margin-top: 1.5rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            padding: 0.75rem;
+            border-radius: 8px;
+            background: #f5f5f5;
+            width: 100%;
+        ">
+            <svg style="width: 18px; height: 18px; margin-right: 8px;" viewBox="0 0 24 24" fill="#666">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            Back to Checkout
+        </a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deliveryOptions = document.getElementById('deliveryOptions');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const radios = deliveryOptions.querySelectorAll('input[type="radio"][name="delivery_person"]');
+
+        let selectedRadio = null;
+
+        radios.forEach(radio => {
+            radio.addEventListener('click', function (e) {
+                if (selectedRadio === this) {
+                    this.checked = false;
+                    selectedRadio = null;
+                    confirmBtn.disabled = true;
+                    confirmBtn.style.cursor = 'not-allowed';
+                    confirmBtn.style.background = '#ddd';
+                    confirmBtn.innerHTML = `
+                        <svg style="width: 18px; height: 18px; margin-right: 8px;" viewBox="0 0 24 24" fill="white">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                        Select a delivery person to confirm
+                    `;
+                } else {
+                    selectedRadio = this;
+                    confirmBtn.disabled = false;
+                    confirmBtn.style.cursor = 'pointer';
+                    confirmBtn.style.background = '#FF5000';
+                    confirmBtn.innerHTML = `
+                        <svg style="width: 18px; height: 18px; margin-right: 8px;" viewBox="0 0 24 24" fill="white">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                        Confirm Delivery Selection
+                    `;
+                }
+            });
+        });
+
+        // Add click handler for entire card
+        document.querySelectorAll('.delivery-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Don't trigger if clicking on the radio directly
+                if (e.target.tagName !== 'INPUT') {
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.click();
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    /* Improved radio button styling */
+    input[type="radio"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        outline: none;
+        cursor: pointer;
+        position: relative;
+        vertical-align: middle;
+        transition: all 0.2s ease;
+    }
+
+    input[type="radio"]:checked {
+        border-color: #FF5000;
+        transform: scale(1.05);
+    }
+
+    input[type="radio"]:checked::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #FF5000;
+    }
+
+    /* Button effects */
+    #confirmBtn:not(:disabled) {
+        background: linear-gradient(135deg, #FF5000, #FF8000) !important;
+    }
+
+    #confirmBtn:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 80, 0, 0.3) !important;
+    }
+
+    #confirmBtn:not(:disabled):active {
+        transform: translateY(0);
+    }
+
+    /* Link effects */
+    a:hover {
+        color: #FF5000;
+        background: #eee !important;
+    }
+
+    /* Card effects */
+    .delivery-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+        border-color: rgba(255, 80, 0, 0.2) !important;
+    }
+
+    .delivery-card input[type="radio"]:checked ~ div {
+        background: rgba(255, 80, 0, 0.05);
+    }
+</style>
+{% endblock %}

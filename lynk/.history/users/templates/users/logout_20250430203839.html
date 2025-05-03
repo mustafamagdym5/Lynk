@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block cart %}{% endblock cart %}
+{% block form %}{% endblock form %}
+{% block location %}
+{% endblock location %}
+
+{% block content %}
+<style>
+    .logout-container {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+    }
+    .logout-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+        overflow: hidden;
+    }
+    .logout-header {
+        background-color: #FF5000;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .logout-title {
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+    }
+    .logout-body {
+        padding: 2.5rem;
+        text-align: center;
+    }
+    .logout-message {
+        font-size: 1.1rem;
+        color: #495057;
+        margin-bottom: 2rem;
+    }
+    .btn-logout {
+        background-color: #FF5000;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-logout:hover {
+        background-color: #e04800;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 80, 0, 0.2);
+    }
+    .btn-cancel {
+        background-color: white;
+        color: #495057;
+        border: 2px solid #dee2e6;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-cancel:hover {
+        background-color: #f8f9fa;
+        border-color: #FF5000;
+        color: #FF5000;
+    }
+    .btn-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+</style>
+
+<div class="logout-container">
+    <div class="logout-card shadow-lg">
+        <div class="logout-header">
+            <h1 class="logout-title">Sign Out</h1>
+        </div>
+        <div class="logout-body">
+            <form method="post">
+                {% csrf_token %}
+                <p class="logout-message">Are you sure you want to sign out?</p>
+                <div class="btn-group">
+                    <button type="button" onclick="goHome()" class="btn btn-cancel">
+                        <i class="fas fa-home me-2"></i>No, Stay Logged In
+                    </button>
+                    <button type="submit" class="btn btn-logout">
+                        <i class="fas fa-sign-out-alt me-2"></i>Yes, Sign Out
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function goHome() {
+        window.location = "{% url 'home:home_page' %}";
+    }
+</script>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

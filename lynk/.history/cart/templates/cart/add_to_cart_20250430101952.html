@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .add-to-cart-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        color: var(--lynk-primary);
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .back-link:hover {
+        color: var(--lynk-primary-dark);
+        transform: translateX(-3px);
+    }
+
+    .back-link i {
+        margin-right: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .product-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(255, 80, 0, 0.1);
+    }
+
+    .product-image-container {
+        height: 100%;
+        min-height: 300px;
+        background: #f9f9f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .product-image {
+        max-height: 280px;
+        width: auto;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .product-details {
+        padding: 2.5rem;
+    }
+
+    .product-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .price-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .current-price {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--lynk-primary);
+    }
+
+    .original-price {
+        font-size: 1.2rem;
+        text-decoration: line-through;
+        color: #999;
+        margin-left: 10px;
+    }
+
+    .discount-badge {
+        background-color: rgba(40, 167, 69, 0.15);
+        color: #28a745;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+
+    .product-description {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+
+    .quantity-control {
+        margin-bottom: 2rem;
+    }
+
+    .quantity-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .quantity-input-group {
+        max-width: 160px;
+    }
+
+    .quantity-btn {
+        width: 45px;
+        height: 45px;
+        font-weight: bold;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease;
+    }
+
+    .quantity-btn:hover {
+        background-color: #e9ecef;
+    }
+
+    .quantity-input {
+        height: 45px;
+        text-align: center;
+        font-weight: 600;
+        border-left: 0;
+        border-right: 0;
+        border-color: #dee2e6;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .add-to-cart-btn {
+        background-color: var(--lynk-primary);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 10px;
+        flex: 1;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .add-to-cart-btn:hover {
+        background-color: var(--lynk-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(255, 80, 0, 0.3);
+    }
+
+    .add-to-cart-btn i {
+        margin-right: 8px;
+    }
+
+    .continue-shopping-btn {
+        background-color: white;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        padding: 12px 24px;
+        font-weight: 600;
+        border-radius: 10px;
+        flex: 1;
+        transition: all 0.3s ease;
+    }
+
+    .continue-shopping-btn:hover {
+        background-color: #f8f9fa;
+        border-color: #ced4da;
+        color: #495057;
+    }
+
+    @media (max-width: 768px) {
+        .product-image-container {
+            min-height: 200px;
+            padding: 1.5rem;
+        }
+        
+        .product-details {
+            padding: 1.5rem;
+        }
+        
+        .product-title {
+            font-size: 1.5rem;
+        }
+        
+        .current-price {
+            font-size: 1.5rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="add-to-cart-container">
+    <a href="{% url 'category:all_items' %}" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Products
+    </a>
+    
+    <div class="card product-card">
+        <div class="row g-0">
+            <div class="col-md-5">
+                <div class="product-image-container">
+                    {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="{{ item.name }}" class="product-image">
+                    {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-image fa-4x mb-3"></i>
+                        <p>No image available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="product-details">
+                    <h1 class="product-title">{{ item.name }}</h1>
+                    
+                    <div class="price-container">
+                        <span class="current-price">{{ item.get_discounted_price|floatformat:0 }} EGP</span>
+                        {% if item.discount > 0 %}
+                        <span class="original-price">{{ item.price|floatformat:0 }} EGP</span>
+                        <span class="discount-badge">Save {{ item.discount }}%</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="product-description">
+                        {{ item.description|default:"No description available" }}
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="quantity-control">
+                            <label for="{{ form.quantity.id_for_label }}" class="quantity-label">Quantity</label>
+                            <div class="input-group quantity-input-group">
+                                <button class="btn quantity-btn" type="button" id="decrement">-</button>
+                                {{ form.quantity }}
+                                <button class="btn quantity-btn" type="button" id="increment">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button type="submit" class="btn add-to-cart-btn">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                            <a href="{% url 'category:all_items' %}" class="btn continue-shopping-btn">
+                                Continue Shopping
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Quantity controls
+        const decrementBtn = document.getElementById('decrement');
+        const incrementBtn = document.getElementById('increment');
+        const quantityInput = document.getElementById('id_quantity');
+        
+        decrementBtn.addEventListener('click', function() {
+            let value = parseInt(quantityInput.value);
+            if (value > 1) {
+                quantityInput.value = value - 1;
+            }
+        });
+        
+        incrementBtn.addEventListener('click', function() {
+            let value = parseInt(quantityInput.value);
+            if (value < 99) {
+                quantityInput.value = value + 1;
+            }
+        });
+        
+        // Ensure quantity is valid when manually entered
+        quantityInput.addEventListener('change', function() {
+            let value = parseInt(this.value);
+            if (isNaN(value) || value < 1) {
+                this.value = 1;
+            } else if (value > 99) {
+                this.value = 99;
+            }
+        });
+    });
+</script>
+{% endblock %}

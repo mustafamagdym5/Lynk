@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .location-page {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+    
+    .location-page h3 {
+        color: #000;
+        font-size: 32px;
+        margin-bottom: 25px;
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 15px;
+    }
+    
+    .location-page h3:after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: #FF5000;
+        border-radius: 2px;
+    }
+    
+    .location-page p {
+        color: #555;
+        font-size: 18px;
+        margin: 30px 0;
+        line-height: 1.6;
+    }
+    
+    .location-link {
+        display: inline-block;
+        padding: 16px 40px;
+        background-color: #FF5000;
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 80, 0, 0.3);
+        border: 2px solid transparent;
+        margin-top: 20px;
+    }
+    
+    .location-link:hover {
+        background-color: white;
+        color: #FF5000;
+        border-color: #FF5000;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 80, 0, 0.4);
+    }
+    
+    .location-icon {
+        display: inline-block;
+        margin-right: 10px;
+        vertical-align: middle;
+    }
+    
+    @media (max-width: 768px) {
+        .location-page {
+            padding: 30px 20px;
+            margin: 20px;
+        }
+        
+        .location-page h3 {
+            font-size: 28px;
+        }
+        
+        .location-link {
+            padding: 14px 30px;
+            font-size: 16px;
+        }
+    }
+</style>
+
+<div class="location-page">
+    <h3>Add Your Location</h3>
+    <p>Select your precise location by clicking on the map. This helps us provide you with better service.</p>
+    
+    <a href="{% url 'location:choose_location' %}" class="location-link">
+        <svg class="location-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="currentColor"/>
+        </svg>
+        Choose Location From Map
+    </a>
+</div>
+{% endblock %}

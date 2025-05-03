@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .delivery-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .delivery-header {
+        margin-bottom: 30px;
+    }
+    
+    .delivery-card {
+        border-left: 4px solid #FF5000;
+        padding: 20px;
+        margin-bottom: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .delivery-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .delivery-card h4 {
+        color: #FF5000;
+        margin-bottom: 15px;
+    }
+    
+    .delivery-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .meta-item {
+        background: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .status-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-accepted {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .status-processing {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .btn-accept {
+        background: linear-gradient(135deg, #4CAF50, #2E7D32);
+        color: white;
+        border: none;
+    }
+    
+    .btn-reject {
+        background: linear-gradient(135deg, #f44336, #c62828);
+        color: white;
+        border: none;
+    }
+    
+    .btn-track {
+        background: linear-gradient(135deg, #2196F3, #1565C0);
+        color: white;
+        border: none;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+    }
+    
+    .empty-state i {
+        font-size: 60px;
+        color: #e0e0e0;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="delivery-container">
+    <div class="delivery-header">
+        <h2>Active Deliveries</h2>
+        <p>Manage your current delivery assignments</p>
+    </div>
+    
+    {% if active_deliveries %}
+        {% for delivery in active_deliveries %}
+        <div class="delivery-card">
+            <h4>Delivery #{{ delivery.id }}</h4>
+            
+            <div class="delivery-meta">
+                <div class="meta-item">
+                    <i class="fas fa-user"></i> {{ delivery.sender.username }}
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-road"></i> {{ delivery.distance }} km
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-money-bill-wave"></i> {{ delivery.delivery_fee }} EGP
+                </div>
+                <div class="status-badge status-{{ delivery.status }}">
+                    {{ delivery.get_status_display }}
+                </div>
+            </div>
+            
+            <p>
+                <i class="fas fa-map-marker-alt"></i> 
+                Delivery to: {{ delivery.sender.username }}'s location
+            </p>
+            
+            <div class="action-buttons">
+                {% if delivery.status == 'accepted' %}
+                <a href="{% url 'delivery:start_delivery' delivery.id %}" class="btn btn-sm btn-accept">
+                    <i class="fas fa-play"></i> Start Delivery
+                </a>
+                {% elif delivery.status == 'processing' %}
+                <a href="{% url 'delivery:complete_delivery' delivery.id %}" class="btn btn-sm btn-accept">
+                    <i class="fas fa-check"></i> Mark as Delivered
+                </a>
+                {% endif %}
+                
+                <a href="{% url 'delivery:track_delivery' %}" class="btn btn-sm btn-track">
+                    <i class="fas fa-map-marked-alt"></i> View on Map
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-truck-loading"></i>
+            <h3>No Active Deliveries</h3>
+            <p>You don't have any active deliveries at the moment.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

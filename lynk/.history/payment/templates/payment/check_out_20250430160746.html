@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'cart:view_cart' %}" class="text-decoration-none me-3">
+                    <i class="fas fa-arrow-left lynk-orange"></i>
+                </a>
+                <h2 class="mb-0 fw-bold">Checkout</h2>
+            </div>
+            
+            {% if cart_items %}
+            <div class="card border-0 shadow-lynk rounded-3 overflow-hidden mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-2"></i> Order Summary</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for cart_item in cart_items %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
+                            <div class="d-flex align-items-center">
+                                {% if cart_item.product.product_image %}
+                                <img src="{{ item.item.image.url }}" alt="{{ item.item.name }}"
+                                    class="rounded-2 me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-light rounded-2 me-3 d-flex align-items-center justify-content-center"
+                                    style="width: 60px; height: 60px;">
+                                    <i class="fas fa-image text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-1 fw-bold">{{ item.item.name }}</h6>
+                                    <small class="text-muted">Qty: {{ item.quantity }} × {{ item.item.get_discounted_price|floatformat:0 }} EGP</small>
+                                </div>
+                            </div>
+                            <span class="fw-bold">{{ item.total_price|floatformat:0 }} EGP</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <div class="p-4 border-top">
+                        <div class="d-flex justify-content-between align-items-center fs-5 fw-bold">
+                            <span>Total</span>
+                            <span class="lynk-orange">{{ total|floatformat:0 }} EGP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-lynk rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <!-- Delivery button as a regular link -->
+                    <a href="#" class="btn btn-lynk-orange w-100 py-3 fw-bold mb-3">
+                        <i class="fas fa-truck me-2"></i> Choose a Delivery
+                    </a>
+                    
+                    <!-- Payment form separated -->
+                    <form method="post" action="{% url 'payment:check_out' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="price_id" value="price_1RHrTcGg2obbyrc99TJivwUp">
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-lynk-orange w-100 py-3 fw-bold">
+                            <i class="fas fa-lock me-2"></i> Proceed to Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="card border-0 shadow-lynk rounded-3 text-center py-5">
+                <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+                <h4 class="mb-3">Your cart is empty</h4>
+                <p class="text-muted mb-4">Looks like you haven't added any items to your cart yet</p>
+                <a href="{% url 'category:all_products' %}" class="btn btn-lynk-orange">
+                    <i class="fas fa-arrow-left me-2"></i> Continue Shopping
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .shadow-lynk {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .rounded-3 {
+        border-radius: 16px !important;
+    }
+    
+    .btn-lynk-orange {
+        background-color: var(--lynk-primary);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-lynk-orange:hover {
+        background-color: var(--lynk-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 80, 0, 0.3);
+    }
+    
+    .lynk-orange {
+        color: var(--lynk-primary);
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        padding: 10px 15px;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .form-control:focus {
+        border-color: var(--lynk-primary);
+        box-shadow: 0 0 0 0.2rem rgba(255, 80, 0, 0.15);
+    }
+</style>
+{% endblock %}

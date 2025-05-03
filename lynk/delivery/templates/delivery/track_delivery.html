@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .tracking-container {
+        max-width: 1000px;
+        margin: 30px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    .tracking-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    
+    .tracking-title {
+        color: #000;
+        font-size: 28px;
+        font-weight: 600;
+    }
+    
+    .tracking-status {
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        background: #f0f0f0;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-accepted {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .status-processing {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-completed {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+    
+    #tracking-map {
+        height: 500px;
+        margin-bottom: 25px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .tracking-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+    }
+    
+    .detail-card {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 4px solid #FF5000;
+    }
+    
+    .detail-title {
+        color: #555;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    
+    .detail-value {
+        color: #000;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .progress-container {
+        margin-top: 30px;
+    }
+    
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin-bottom: 30px;
+    }
+    
+    .progress-steps:before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #e0e0e0;
+        z-index: 1;
+    }
+    
+    .progress-bar {
+        position: absolute;
+        top: 15px;
+        left: 0;
+        height: 3px;
+        background: #FF5000;
+        z-index: 2;
+        transition: width 0.5s ease;
+    }
+    
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 3;
+    }
+    
+    .step-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+        color: #999;
+    }
+    
+    .step.active .step-icon {
+        background: #FF5000;
+        color: white;
+    }
+    
+    .step.completed .step-icon {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 12px;
+        color: #999;
+        text-align: center;
+    }
+    
+    .step.active .step-label,
+    .step.completed .step-label {
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .eta-display {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 18px;
+    }
+    
+    .eta-value {
+        font-weight: 600;
+        color: #FF5000;
+    }
+</style>
+
+<div class="tracking-container">
+    <div class="tracking-header">
+        <h1 class="tracking-title">Track Your Delivery</h1>
+        <div class="tracking-status status-{{ delivery_request.status }}">
+            {{ delivery_request.get_status_display }}
+        </div>
+    </div>
+    
+    <div id="tracking-map"></div>
+    
+    <div class="progress-container">
+        <div class="progress-steps">
+            <div class="progress-bar" id="progressBar" style="width: 
+                {% if delivery_request.status == 'pending' %}0%
+                {% elif delivery_request.status == 'accepted' %}33%
+                {% elif delivery_request.status == 'processing' %}66%
+                {% else %}100%{% endif %}">
+            </div>
+            
+            <div class="step {% if delivery_request.status != 'pending' %}completed{% endif %}">
+                <div class="step-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="step-label">Order Placed</div>
+            </div>
+            
+            <div class="step {% if delivery_request.status == 'accepted' %}active{% elif delivery_request.status == 'processing' or delivery_request.status == 'completed' %}completed{% endif %}">
+                <div class="step-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="step-label">Delivery Accepted</div>
+            </div>
+            
+            <div class="step {% if delivery_request.status == 'processing' %}active{% elif delivery_request.status == 'completed' %}completed{% endif %}">
+                <div class="step-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="step-label">On The Way</div>
+            </div>
+            
+            <div class="step {% if delivery_request.status == 'completed' %}active{% endif %}">
+                <div class="step-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="step-label">Delivered</div>
+            </div>
+        </div>
+        
+        <div class="eta-display">
+            Estimated arrival: <span class="eta-value">
+                {% if delivery_request.status == 'pending' %}Waiting for acceptance
+                {% elif delivery_request.status == 'accepted' %}Preparing for pickup
+                {% elif delivery_request.status == 'processing' %}Approximately {{ delivery_request.distance|floatformat:0 }} minutes away
+                {% else %}Delivery completed{% endif %}
+            </span>
+        </div>
+    </div>
+    
+    <div class="tracking-details">
+        <div class="detail-card">
+            <div class="detail-title">Delivery Person</div>
+            <div class="detail-value">{{ delivery_request.recipient.username }}</div>
+        </div>
+        
+        <div class="detail-card">
+            <div class="detail-title">Delivery Fee</div>
+            <div class="detail-value">{{ delivery_request.delivery_fee }} EGP</div>
+        </div>
+        
+        <div class="detail-card">
+            <div class="detail-title">Distance</div>
+            <div class="detail-value">{{ delivery_request.distance }} km</div>
+        </div>
+        
+        <div class="detail-card">
+            <div class="detail-title">Order Number</div>
+            <div class="detail-value">#{{ delivery_request.id }}</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map
+        var map = L.map('tracking-map').setView([{{ customer_location.0 }}, {{ customer_location.1 }}], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Custom icons
+        var customerIcon = L.divIcon({
+            className: 'customer-marker',
+            html: '<div style="background-color: #FF5000; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        var deliveryIcon = L.divIcon({
+            className: 'delivery-marker',
+            html: '<div style="background-color: #4CAF50; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"><i class="fas fa-truck" style="color: white; font-size: 12px; display: flex; justify-content: center; align-items: center; height: 100%;"></i></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        // Add markers
+        var customerMarker = L.marker([{{ customer_location.0 }}, {{ customer_location.1 }}], {
+            icon: customerIcon
+        }).addTo(map).bindPopup("Your Location");
+
+        var deliveryMarker = L.marker([{{ delivery_person_location.0 }}, {{ delivery_person_location.1 }}], {
+            icon: deliveryIcon
+        }).addTo(map).bindPopup("Delivery Person");
+
+        // Add routing control
+        L.Routing.control({
+            waypoints: [
+                L.latLng({{ delivery_person_location.0 }}, {{ delivery_person_location.1 }}),
+                L.latLng({{ customer_location.0 }}, {{ customer_location.1 }})
+            ],
+            routeWhileDragging: false,
+            show: false,
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            lineOptions: {
+                styles: [{color: '#FF5000', opacity: 0.7, weight: 5}]
+            },
+            createMarker: function() { return null; }
+        }).addTo(map);
+
+        // Auto-update delivery person location every 10 seconds
+        function updateDeliveryLocation() {
+            fetch('{% url "delivery:get_delivery_location" delivery_request.id %}')
+                .then(response => response.json())
+                .then(data => {
+                    if(data.latitude && data.longitude) {
+                        var newLatLng = new L.LatLng(data.latitude, data.longitude);
+                        deliveryMarker.setLatLng(newLatLng);
+                        
+                        // Update the route
+                        if(window.routeControl) {
+                            window.routeControl.setWaypoints([
+                                newLatLng,
+                                L.latLng({{ customer_location.0 }}, {{ customer_location.1 }})
+                            ]);
+                        }
+                    }
+                });
+        }
+
+        // Set up periodic updates
+        updateDeliveryLocation();
+        setInterval(updateDeliveryLocation, 10000);  // Update every 10 seconds
+    });
+</script>
+{% endblock %}

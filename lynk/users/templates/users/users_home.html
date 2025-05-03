@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block location %}
+{% endblock location %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg" style="width: 500px; border-radius: 20px; border: none; overflow: hidden;">
+        <!-- Gradient header section -->
+        <div class="card-header py-4" style="background: linear-gradient(135deg, #FF5000 0%, #ff7b45 100%); border: none;">
+            <h1 class="mb-0 text-white" style="font-weight: 800; letter-spacing: 1px;">Welcome</h1>
+        </div>
+        
+        <div class="card-body p-5 text-center">
+            <!-- Decorative elements -->
+            <div class="position-absolute top-0 end-0 mt-3 me-3">
+                <div style="width: 15px; height: 15px; background-color: #FF5000; border-radius: 50%; display: inline-block; margin-right: 5px;"></div>
+                <div style="width: 15px; height: 15px; background-color: #FF5000; border-radius: 50%; display: inline-block; opacity: 0.6;"></div>
+            </div>
+            
+            <div class="mb-5">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#FF5000"/>
+                    <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" fill="#FF5000" fill-opacity="0.7"/>
+                </svg>
+            </div>
+            
+            <div class="d-grid gap-3">
+                <a href="{% url 'users:login' %}" 
+                class="btn btn-lg text-white fw-bold py-3 shadow-sm" 
+                style="background-color: #FF5000; border-radius: 10px; letter-spacing: 0.5px;">
+                    Login
+                </a>
+                
+                <a href="{% url 'users:register' %}" 
+                class="btn btn-lg fw-bold py-3 shadow-sm" 
+                style="color: #FF5000; border: 2px solid #FF5000; border-radius: 10px; letter-spacing: 0.5px;">
+                    Don't have an account?
+                </a>
+            </div>
+            
+            <!-- Subtle decorative elements -->
+            <div class="d-flex justify-content-center mt-4">
+                <div style="width: 40px; height: 4px; background-color: #FF5000; opacity: 0.2; border-radius: 2px; margin: 0 5px;"></div>
+                <div style="width: 40px; height: 4px; background-color: #FF5000; opacity: 0.4; border-radius: 2px; margin: 0 5px;"></div>
+                <div style="width: 40px; height: 4px; background-color: #FF5000; opacity: 0.6; border-radius: 2px; margin: 0 5px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(255, 80, 0, 0.1) !important;
+    }
+    
+    .btn {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 80, 0, 0.2) !important;
+    }
+    
+    a[href*='login']:hover {
+        background-color: #e04800 !important;
+    }
+    
+    a[href*='register']:hover {
+        background-color: #FF5000 !important;
+        color: white !important;
+    }
+    
+    /* Subtle animation for the user icon */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+        100% { transform: translateY(0px); }
+    }
+    
+    svg {
+        animation: float 3s ease-in-out infinite;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,160 @@
+.
+├── cart
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       └── __init__.cpython-312.pyc
+│   ├── models.py
+│   ├── __pycache__
+│   │   ├── admin.cpython-312.pyc
+│   │   ├── apps.cpython-312.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── models.cpython-312.pyc
+│   ├── tests.py
+│   └── views.py
+├── category
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       └── __init__.cpython-312.pyc
+│   ├── models.py
+│   ├── __pycache__
+│   │   ├── admin.cpython-312.pyc
+│   │   ├── apps.cpython-312.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── models.cpython-312.pyc
+│   ├── tests.py
+│   └── views.py
+├── db.sqlite3
+├── delivery
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       └── __init__.cpython-312.pyc
+│   ├── models.py
+│   ├── __pycache__
+│   │   ├── admin.cpython-312.pyc
+│   │   ├── apps.cpython-312.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── models.cpython-312.pyc
+│   ├── tests.py
+│   └── views.py
+├── home
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       └── __init__.cpython-312.pyc
+│   ├── models.py
+│   ├── __pycache__
+│   │   ├── admin.cpython-312.pyc
+│   │   ├── apps.cpython-312.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── models.cpython-312.pyc
+│   │   ├── urls.cpython-312.pyc
+│   │   └── views.cpython-312.pyc
+│   ├── templates
+│   │   └── home
+│   │       └── customer_home.html
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── location
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── migrations
+│   │   └── __init__.py
+│   ├── models.py
+│   ├── tests.py
+│   └── views.py
+├── lynk
+│   ├── asgi.py
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── settings.cpython-312.pyc
+│   │   ├── urls.cpython-312.pyc
+│   │   └── wsgi.cpython-312.pyc
+│   ├── settings.py
+│   ├── templates
+│   │   └── base.html
+│   ├── urls.py
+│   └── wsgi.py
+├── manage.py
+├── payment
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       └── __init__.cpython-312.pyc
+│   ├── models.py
+│   ├── __pycache__
+│   │   ├── admin.cpython-312.pyc
+│   │   ├── apps.cpython-312.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── models.cpython-312.pyc
+│   ├── tests.py
+│   └── views.py
+├── static
+│   └── logo
+│       └── logo.png
+├── tree.txt
+├── users
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── __init__.py
+│   ├── migrations
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   │       └── __init__.cpython-312.pyc
+│   ├── models.py
+│   ├── __pycache__
+│   │   ├── admin.cpython-312.pyc
+│   │   ├── apps.cpython-312.pyc
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── models.cpython-312.pyc
+│   │   ├── urls.cpython-312.pyc
+│   │   └── views.cpython-312.pyc
+│   ├── templates
+│   │   └── users
+│   │       ├── login.html
+│   │       ├── logout.html
+│   │       ├── register_home.html
+│   │       ├── register.html
+│   │       └── users_home.html
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+└── vendor
+    ├── admin.py
+    ├── apps.py
+    ├── __init__.py
+    ├── migrations
+    │   ├── __init__.py
+    │   └── __pycache__
+    │       └── __init__.cpython-312.pyc
+    ├── models.py
+    ├── __pycache__
+    │   ├── admin.cpython-312.pyc
+    │   ├── apps.cpython-312.pyc
+    │   ├── __init__.cpython-312.pyc
+    │   └── models.cpython-312.pyc
+    ├── tests.py
+    └── views.py
+
+40 directories, 118 files

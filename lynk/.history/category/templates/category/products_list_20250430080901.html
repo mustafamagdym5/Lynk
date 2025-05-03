@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Item List Styling (same as before) */
+    .items-section {
+        padding: 3rem 0;
+        background-color: #f9f9fa;
+    }
+
+    .category-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .category-title {
+        color: #333;
+        font-weight: 700;
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .category-title:after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background: #FF5000;
+        margin: 15px auto;
+        border-radius: 2px;
+    }
+
+    .products-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+    }
+
+    .item-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .item-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(255, 80, 0, 0.15);
+    }
+
+    .item-img-container {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .item-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .item-card:hover .item-img {
+        transform: scale(1.05);
+    }
+
+    .item-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #FF5000;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .item-body {
+        padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .item-name {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .item-description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        flex-grow: 1;
+    }
+
+    .item-price {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .current-price {
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: #FF5000;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        color: #999;
+        margin-left: 8px;
+        font-size: 0.9rem;
+    }
+
+    .item-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .add-to-cart-form {
+        display: inline; /* To keep the button inline with other actions */
+    }
+
+    .add-to-cart {
+        background-color: #FF5000;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .add-to-cart:hover {
+        background-color: #e04800;
+        transform: translateY(-2px);
+    }
+
+    .favorite-btn {
+        background: none;
+        border: none;
+        color: #ccc;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .favorite-btn:hover {
+        color: #FF5000;
+    }
+
+    .no-items {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        grid-column: 1 / -1;
+    }
+
+    .no-items-icon {
+        font-size: 3rem;
+        color: #FF5000;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<section class="items-section">
+    <div class="container">
+        <div class="category-header">
+            <h2 class="section-title">Browse Our Products</h2>
+            <p class="text-muted">{{ products.count }} products available</p>
+        </div>
+
+        <div class="products-container">
+            {% for product in products %}
+            <div class="item-card">
+                <div class="item-img-container">
+                    {% if product.product_image %}
+                    <img src="{{ product.product_image.url }}" class="item-img" alt="{{ product.name }}">
+                    {% else %}
+                    <div class="item-img bg-light d-flex align-items-center justify-content-center">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="item-body">
+                    <h3 class="item-name">{{ product.name }}</h3>
+                    <p class="item-description">
+                        {{ product.description|default:"No description available" }}
+                    </p>
+
+                    <div class="item-price">
+                        <span >{{ product.price|floatformat:0 }}</span> EGP
+                    </div>
+
+                    <div class="item-actions">
+                        <form method="post" action="#" class="add-to-cart-form">
+                            {% csrf_token %}
+                            <button type="submit" class="add-to-cart">
+                                <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                            </button>
+                        </form>
+                        <button class="favorite-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-items">
+                <div class="no-items-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <h3>No Products Available</h3>
+                <p class="text-muted">We'll be adding new products soon. Please check back later!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<script>
+    // Toggle favorite button
+    document.querySelectorAll('.favorite-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.classList.toggle('far');
+            this.classList.toggle('fas');
+            this.classList.toggle('text-danger');
+        });
+    });
+</script>
+{% endblock %}

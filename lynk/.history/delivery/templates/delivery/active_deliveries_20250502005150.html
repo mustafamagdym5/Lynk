@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .delivery-map-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    #delivery-map {
+        height: 600px;
+        margin-bottom: 25px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .map-legend {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+    }
+    
+    .delivery-color {
+        background-color: #4CAF50;
+    }
+    
+    .customer-color {
+        background-color: #FF5000;
+    }
+    
+    .vendor-color {
+        background-color: #2196F3;
+    }
+    
+    .delivery-list {
+        margin-top: 30px;
+    }
+    
+    .delivery-card {
+        border-left: 4px solid #FF5000;
+        padding: 15px;
+        margin-bottom: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+</style>
+
+<div class="delivery-map-container">
+    <h2>My Active Deliveries</h2>
+    
+    <div class="map-legend">
+        <div class="legend-item">
+            <div class="legend-color delivery-color"></div>
+            <span>Your Location</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color customer-color"></div>
+            <span>Customer</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color vendor-color"></div>
+            <span>Vendor</span>
+        </div>
+    </div>
+    
+    <div id="delivery-map"></div>
+    
+    <div class="delivery-list">
+        {% for delivery in active_deliveries %}
+        <div class="delivery-card">
+            <h4>Delivery #{{ delivery.id }}</h4>
+            <p><strong>Customer:</strong> {{ delivery.sender.username }}</p>
+            <p><strong>Status:</strong> {{ delivery.get_status_display }}</p>
+            <p><strong>Distance:</strong> {{ delivery.distance }} km</p>
+            <p><strong>Fee:</strong> {{ delivery.delivery_fee }} EGP</p>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">
+            You don't have any active deliveries at the moment.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="delivery-map"></div>
+
+<!-- Debug output -->
+<div style="display: none;">
+    <h4>Debug Information:</h4>
+    <p>Delivery Person Location: {{ delivery_person_location.lat }}, {{ delivery_person_location.lng }}</p>
+    <h5>All Locations:</h5>
+    <ul>
+        {% for location in locations %}
+        <li>{{ location.name }}: {{ location.lat }}, {{ location.lng }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map centered on delivery person's location
+        var map = L.map('delivery-map').setView(
+            [{{ delivery_person_location.lat }}, {{ delivery_person_location.lng }}], 
+            12
+        );
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Custom icons
+        function createIcon(color, icon) {
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center;">
+                        <i class="fas ${icon}" style="color: white; font-size: 12px;"></i>
+                    </div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+        }
+
+        // Add markers for all locations
+        {% for location in locations %}
+            var icon;
+            var popupContent = "{{ location.name }}";
+            
+            if ("{{ location.type }}" === "delivery") {
+                icon = createIcon('#4CAF50', 'fa-truck');
+            } else if ("{{ location.type }}" === "customer") {
+                icon = createIcon('#FF5000', 'fa-user');
+            } else {
+                icon = createIcon('#2196F3', 'fa-store');
+            }
+            
+            L.marker([{{ location.lat }}, {{ location.lng }}], {
+                icon: icon
+            }).addTo(map).bindPopup(popupContent);
+        {% endfor %}
+
+        // Auto-update delivery person's location
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        // In a real app, you'd send this to your server
+                        console.log("New position:", position.coords.latitude, position.coords.longitude);
+                    },
+                    function(error) {
+                        console.error("Geolocation error:", error);
+                    }
+                );
+            }
+        }
+        
+        // Update every 10 seconds
+        updateLocation();
+        setInterval(updateLocation, 10000);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>View Cart page</h1>
+
+{% for cart_product in cart_products %}
+
+<div class="cart_product">
+    <figure>
+        <img src="{{ cart_product.product.product_image.url }}" alt="{{ cart_product.product.name }}">
+    </figure>
+
+    <p>{{ cart_product.product.name }}</p>
+</div>
+
+{% empty %}
+
+<p>There are no categories</p>
+
+{% endfor %}
+
+{% endblock %}

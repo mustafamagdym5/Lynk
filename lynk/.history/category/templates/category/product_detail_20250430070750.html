@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        {% if product.product_image %}
+        <img src="{{ product.product_image.url }}" class="card-img-top" alt="{{ product.name }}">
+        {% else %}
+        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+            <i class="fas fa-image fa-4x text-muted"></i>
+        </div>
+        {% endif %}
+        <div class="card-body">
+            <h5 class="card-title">{{ product.name }}</h5>
+            <p class="card-text">{{ product.description }}</p>
+            <p class="card-text"><small class="text-muted">Price: {{ product.price|floatformat:0 }} EGP</small></p>
+            <a href="{% url 'category:items' category_slug %}" class="btn btn-outline-secondary btn-sm mt-3">Back to Category</a>
+            </div>
+    </div>
+</div>
+{% endblock %}

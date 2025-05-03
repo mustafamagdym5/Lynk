@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .cart-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .cart-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .cart-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .cart-title:after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background: #FF5000;
+        margin: 15px auto;
+        border-radius: 2px;
+    }
+
+    .cart-items {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .cart-product {
+        display: grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 2rem;
+        align-items: center;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .cart-product:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 80, 0, 0.1);
+    }
+
+    .cart-product-image {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .cart-product-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .cart-product-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .cart-product-price {
+        font-size: 1.1rem;
+        color: #FF5000;
+        font-weight: 700;
+    }
+
+    .cart-product-quantity {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .quantity-btn {
+        background: #f8f9fa;
+        border: none;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .quantity-btn:hover {
+        background: #e9ecef;
+    }
+
+    .quantity-input {
+        width: 50px;
+        text-align: center;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .remove-btn {
+        background: none;
+        border: none;
+        color: #dc3545;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .remove-btn:hover {
+        color: #c82333;
+        text-decoration: underline;
+    }
+
+    .cart-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 3rem;
+        gap: 1rem;
+    }
+
+    .cart-btn {
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .continue-shopping {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: none;
+    }
+
+    .continue-shopping:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+    }
+
+    .checkout-btn {
+        background: #FF5000;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(255, 80, 0, 0.2);
+    }
+
+    .checkout-btn:hover {
+        background: #e04800;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(255, 80, 0, 0.3);
+    }
+
+    .cart-summary {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-top: 3rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .summary-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .empty-cart {
+        text-align: center;
+        padding: 4rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .empty-cart-icon {
+        font-size: 3rem;
+        color: #FF5000;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .cart-product {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+        
+        .cart-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1 class="cart-title">Your Shopping Cart</h1>
+        <p class="text-muted">Review and proceed to checkout</p>
+    </div>
+
+    {% if cart_products %}
+    <div class="cart-items">
+        {% for cart_product in cart_products %}
+        <div class="cart-product">
+            <figure>
+                <img src="{{ cart_product.product.product_image.url }}" alt="{{ cart_product.product.name }}" class="cart-product-image">
+            </figure>
+
+            <div class="cart-product-details">
+                <h3 class="cart-product-name">{{ cart_product.product.name }}</h3>
+                <p class="cart-product-price">{{ cart_product.product.price|floatformat:0 }} EGP</p>
+                
+                <div class="cart-product-quantity">
+                    <div class="quantity-control">
+                        <button class="quantity-btn">-</button>
+                        <input type="text" class="quantity-input" value="{{ cart_product.quantity }}" readonly>
+                        <button class="quantity-btn">+</button>
+                    </div>
+                    <a class="remove-btn"  >Remove</button>
+                </div>
+
+                <form action="{% url 'cart:update_cart' product_id=cart_product.product.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="number" name="quantity" value="{{ product.quantity }}" min="0">
+                    <button type="submit">Update</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="cart-summary">
+        <h3 class="summary-title">Order Summary</h3>
+        <div class="summary-row">
+            <span>Total</span>
+            <span>{{ all_cost|floatformat:0 }} EGP</span>
+    </div>
+
+    <div class="cart-actions">
+        <a href="{% url 'home:home_page' %}" class="cart-btn continue-shopping">
+            <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+        </a>
+        <button class="cart-btn checkout-btn">
+            Proceed to Checkout <i class="fas fa-arrow-right ms-2"></i>
+        </button>
+    </div>
+    {% else %}
+    <div class="empty-cart">
+        <div class="empty-cart-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h3>Your Cart is Empty</h3>
+        <p class="text-muted">Looks like you haven't added any items yet</p>
+        <a href="{% url 'category:all_products' %}" class="cart-btn continue-shopping mt-3">
+            <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Quantity controls
+    document.querySelectorAll('.quantity-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('.quantity-input');
+            let value = parseInt(input.value);
+            
+            if (this.textContent === '+' && value < 99) {
+                input.value = value + 1;
+            } else if (this.textContent === '-' && value > 1) {
+                input.value = value - 1;
+            }
+            
+            // Here you would typically send an AJAX request to update the cart
+            // updateCartQuantity(productId, newQuantity);
+        });
+    });
+    
+    // Remove button functionality
+    document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const cartItem = this.closest('.cart-product');
+            cartItem.style.opacity = '0';
+            setTimeout(() => {
+                cartItem.remove();
+                // Here you would typically send an AJAX request to remove the item
+                // removeFromCart(productId);
+            }, 300);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="card border-0 shadow-sm mx-auto" style="max-width: 500px; border-radius: 16px;">
+        <div class="card-body p-4">
+            <div class="text-success mb-4">
+                <i class="fas fa-check-circle" style="font-size: 3rem;"></i>
+            </div>
+            <h3 class="mb-3">Delivery Accepted!</h3>
+            <p class="text-muted mb-4">{{ message }}</p>
+            
+            <div class="d-flex flex-column gap-3">
+                <a href="{% url 'payment:check_out' %}?delivery_request_id={{ request.GET.delivery_request_id }}" 
+                class="btn btn-primary btn-lg">
+                    <i class="fas fa-credit-card me-2"></i> Proceed to Payment
+                </a>
+                <a href="{% url 'home:home_page' %}" class="btn btn-outline-secondary">
+                    Return to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

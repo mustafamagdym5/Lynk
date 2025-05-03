@@ -1,0 +1,460 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --lynk-primary: #FF5000;
+        --lynk-primary-dark: #e04800;
+        --lynk-light: #ffffff;
+        --lynk-dark: #1a1a1a;
+        --lynk-gray: #f8f9fa;
+        --lynk-border: #e0e0e0;
+        --lynk-text: #333333;
+        --lynk-text-light: #666666;
+        --lynk-danger: #dc3545;
+    }
+
+    .cart-container {
+        max-width: 1200px;
+        margin: 3rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .cart-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .cart-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--lynk-text);
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .cart-title:after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 4px;
+        background: var(--lynk-primary);
+        margin: 15px auto;
+        border-radius: 2px;
+    }
+
+    .cart-subtitle {
+        color: var(--lynk-text-light);
+        font-size: 1.1rem;
+    }
+
+    .cart-items {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .cart-product {
+        display: grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 2rem;
+        align-items: center;
+        background: var(--lynk-light);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        border: 1px solid var(--lynk-border);
+    }
+
+    .cart-product:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 80, 0, 0.1);
+        border-color: rgba(255, 80, 0, 0.2);
+    }
+
+    .cart-product-image-container {
+        width: 120px;
+        height: 120px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--lynk-gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cart-product-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .cart-product:hover .cart-product-image {
+        transform: scale(1.05);
+    }
+
+    .cart-product-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .cart-product-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--lynk-text);
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .cart-product-price {
+        font-size: 1.2rem;
+        color: var(--lynk-primary);
+        font-weight: 700;
+    }
+
+    .cart-product-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .quantity-form {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--lynk-border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .quantity-btn {
+        background: var(--lynk-gray);
+        border: none;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .quantity-btn:hover {
+        background: #e9ecef;
+    }
+
+    .quantity-input {
+        width: 50px;
+        text-align: center;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        background: var(--lynk-light);
+    }
+
+    .update-btn {
+        background: var(--lynk-primary);
+        color: var(--lynk-light);
+        border: none;
+        padding: 0.5rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .update-btn:hover {
+        background: var(--lynk-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 80, 0, 0.2);
+    }
+
+    .remove-form {
+        display: inline;
+    }
+
+    .remove-btn {
+        background: none;
+        border: none;
+        color: var(--lynk-danger);
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .remove-btn:hover {
+        color: #c82333;
+        text-decoration: underline;
+    }
+
+    .cart-summary {
+        background: var(--lynk-light);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-top: 3rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--lynk-border);
+    }
+
+    .summary-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--lynk-text);
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--lynk-border);
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .cart-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 3rem;
+        gap: 1.5rem;
+    }
+
+    .cart-btn {
+        padding: 1rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        flex: 1;
+    }
+
+    .continue-shopping {
+        background: var(--lynk-gray);
+        color: var(--lynk-text-light);
+        border: 1px solid var(--lynk-border);
+    }
+
+    .continue-shopping:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+        border-color: #ced4da;
+    }
+
+    .checkout-btn {
+        background: var(--lynk-primary);
+        color: var(--lynk-light);
+        border: none;
+        box-shadow: 0 4px 12px rgba(255, 80, 0, 0.2);
+    }
+
+    .checkout-btn:hover {
+        background: var(--lynk-primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(255, 80, 0, 0.3);
+    }
+
+    .empty-cart {
+        text-align: center;
+        padding: 4rem;
+        background: var(--lynk-light);
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--lynk-border);
+    }
+
+    .empty-cart-icon {
+        font-size: 3.5rem;
+        color: var(--lynk-primary);
+        margin-bottom: 1.5rem;
+        opacity: 0.8;
+    }
+
+    .empty-cart-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--lynk-text);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-cart-text {
+        color: var(--lynk-text-light);
+        max-width: 500px;
+        margin: 0 auto 2rem;
+    }
+
+    @media (max-width: 768px) {
+        .cart-container {
+            padding: 0 1rem;
+        }
+        
+        .cart-product {
+            grid-template-columns: 1fr;
+            text-align: center;
+            gap: 1.5rem;
+        }
+        
+        .cart-product-image-container {
+            width: 100%;
+            height: 200px;
+            margin: 0 auto;
+        }
+        
+        .cart-product-actions {
+            align-items: center;
+        }
+        
+        .quantity-form {
+            justify-content: center;
+        }
+        
+        .cart-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1 class="cart-title">Your Shopping Cart</h1>
+        <p class="cart-subtitle">Review and proceed to checkout</p>
+    </div>
+
+    {% if cart_products %}
+    <div class="cart-items">
+        {% for cart_product in cart_products %}
+        <div class="cart-product">
+            <div class="cart-product-image-container">
+                {% if cart_product.product.product_image %}
+                <img src="{{ cart_product.product.product_image.url }}" alt="{{ cart_product.product.name }}" class="cart-product-image">
+                {% else %}
+                <i class="fas fa-image fa-3x text-muted"></i>
+                {% endif %}
+            </div>
+
+            <div class="cart-product-details">
+                <h3 class="cart-product-name">{{ cart_product.product.name }}</h3>
+                <p class="cart-product-price">{{ cart_product.product.price|floatformat:0 }} EGP</p>
+            </div>
+
+            <div class="cart-product-actions">
+                <form method="post" action="{% url 'cart:update_cart' product_id=cart_product.product.id %}" class="quantity-form">
+                    {% csrf_token %}
+                    <div class="quantity-control">
+                        <button type="button" class="quantity-btn decrement">-</button>
+                        <input type="number" name="quantity" class="quantity-input" value="{{ cart_product.quantity }}" min="1" max="99">
+                        <button type="button" class="quantity-btn increment">+</button>
+                    </div>
+                    <button type="submit" class="update-btn">
+                        <i class="fas fa-sync-alt"></i> Update
+                    </button>
+                </form>
+                
+                <form method="post" action="{% url 'cart:delete_cart_item' cart_product.product.id %}" class="remove-form">
+                    {% csrf_token %}
+                    <button type="submit" class="remove-btn">
+                        <i class="fas fa-trash-alt"></i> Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="cart-summary">
+        <h3 class="summary-title">Order Summary</h3>
+        <div class="summary-row">
+            <span>Total</span>
+            <span>{{ all_cost|floatformat:0 }} EGP</span>
+        </div>
+    </div>
+
+    <div class="cart-actions">
+        <a href="{% url 'category:all_products' %}" class="cart-btn continue-shopping">
+            <i class="fas fa-arrow-left"></i> Continue Shopping
+        </a>
+        <a href="{% url 'payment:check_out' %}" class="cart-btn checkout-btn">
+            Proceed to Checkout <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+    {% else %}
+    <div class="empty-cart">
+        <div class="empty-cart-icon">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h3 class="empty-cart-title">Your Cart is Empty</h3>
+        <p class="empty-cart-text">Looks like you haven't added any items yet</p>
+        <a href="{% url 'category:all_products' %}" class="cart-btn continue-shopping">
+            <i class="fas fa-arrow-left"></i> Continue Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Quantity controls
+        document.querySelectorAll('.quantity-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = this.closest('.quantity-control').querySelector('.quantity-input');
+                let value = parseInt(input.value);
+                
+                if (this.classList.contains('increment') && value < 99) {
+                    input.value = value + 1;
+                } else if (this.classList.contains('decrement') && value > 1) {
+                    input.value = value - 1;
+                }
+            });
+        });
+        
+        // Form submission handling
+        document.querySelectorAll('.quantity-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating';
+                submitBtn.disabled = true;
+            });
+        });
+        
+        document.querySelectorAll('.remove-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (!confirm('Are you sure you want to remove this item from your cart?')) {
+                    e.preventDefault();
+                    return;
+                }
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Removing';
+                submitBtn.disabled = true;
+            });
+        });
+    });
+</script>
+{% endblock %}

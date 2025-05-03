@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #f8f9fa; /* Light grey background for overall feel */
+    }
+
+    .lynk-orange {
+        color: #FF5000 !important;
+    }
+
+    .bg-lynk-orange {
+        background-color: #FF5000 !important;
+        color: white !important;
+    }
+
+    .btn-lynk-orange {
+        background-color: #FF5000 !important;
+        color: white !important;
+        border-color: #FF5000 !important;
+    }
+
+    .btn-lynk-orange:hover {
+        background-color: #e04800 !important;
+        border-color: #e04800 !important;
+    }
+
+    .card {
+        border: 1px solid #ddd; /* Subtle border for cards */
+    }
+
+    .card-header {
+        background-color: #f8f9fa; /* Light grey card header */
+        border-bottom: 1px solid #ddd;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa; /* Light grey table header */
+        border-bottom: 2px solid #ddd;
+    }
+
+    .btn-outline-secondary {
+        color: #6c757d;
+        border-color: #6c757d;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .cart-title {
+        color: black !important;
+        text-align: center !important;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="mb-4 cart-title">Your Shopping Cart</h2>
+
+    {% if cart_products %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 lynk-orange">Items in Your Cart</h6>
+                </div>
+                <div class="card-body p-3">
+                    <div class="table-responsive">
+                        <table class="table table-borderless table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Product</th>
+                                    <th scope="col" class="text-center">Quantity</th>
+                                    <th scope="col" class="text-end">Price</th>
+                                    <th scope="col" class="text-end">Total</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in cart_products %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if product.product_image %}
+                                            <img src="{{ item.item.image.url }}" alt="{{ item.item.name }}" width="60" class="me-2 rounded">
+                                            {% else %}
+                                            <div class="bg-light d-flex align-items-center justify-content-center me-2 rounded" style="width: 60px; height: 60px;">
+                                                <i class="fas fa-image fa-sm text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <h6 class="mb-0">{{ product.product.name }}</h6>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <form method="post" action="{% url 'cart:update_cart_item' item.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <div class="input-group input-group-sm" style="width: 100px;">
+                                                <button class="btn btn-outline-secondary decrement-btn" type="button">-</button>
+                                                {{ product.product.quantity }}
+                                                <button class="btn btn-outline-secondary increment-btn" type="button">+</button>
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-lynk-orange mt-2">Update</button>
+                                        </form>
+                                    </td>
+                                    <td class="text-end">{{ item.price|floatformat:0 }} <span class="lynk-orange">EGP</span></td>
+                                    <td class="text-end">
+                                        <a href="{% url 'cart:remove_from_cart' item.id %}" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Are you sure you want to remove this item?')">
+                                            <i class="fas fa-trash-alt"></i> Remove
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 lynk-orange">Order Summary</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-3">
+                        <li class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Subtotal:</span>
+                            <span class="lynk-orange">{{ total|floatformat:0 }} EGP</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center mb-2">
+                            <span>Shipping:</span>
+                            <span>Calculated at Checkout</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center">
+                            <strong>Total:</strong>
+                            <strong class="lynk-orange">{{ total|floatformat:0 }} EGP</strong>
+                        </li>
+                    </ul>
+                    <div class="d-grid gap-2">
+                        {% if cart_products %}
+                            <a href="{% url 'delivery:select_delivery' %}" class="btn btn-lynk-orange btn-lg">Proceed to Checkout</a>
+                        {% endif %}
+                        <a href="{% url 'category:all_items' %}" class="btn btn-outline-secondary btn-sm">Continue Shopping</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm p-5 text-center">
+        <i class="fas fa-shopping-cart fa-4x lynk-orange mb-3"></i>
+        <p class="lead">Your cart is empty.</p>
+        <a href="{% url 'category:all_items' %}" class="btn btn-lynk-orange">Browse Items</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.increment-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const quantityInput = this.parentNode.querySelector('input[name="quantity"]');
+                quantityInput.stepUp();
+            });
+        });
+
+        document.querySelectorAll('.decrement-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const quantityInput = this.parentNode.querySelector('input[name="quantity"]');
+                if (parseInt(quantityInput.value) > 1) {
+                    quantityInput.stepDown();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

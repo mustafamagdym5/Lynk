@@ -1,0 +1,196 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.views import View
+from category.models import Category, Product
+from users.models import CustomUser
+from cart.models import Cart, CartProducts
+from geopy.distance import geodesic
+import math
+from collections import defaultdict
+from decimal import Decimal
+from decimal import InvalidOperation
+from django.contrib.auth.mixins import LoginRequiredMixin
+from delivery.models import Request
+from django.contrib import messages
+
+# Create your views here.
+class HomeView(View):
+    def get(self, request):
+        if request.user.is_authenticated and request.user.role == 'vendor':
+            return redirect(reverse('vendor:vendor_home'))
+        if request.user.is_authenticated and request.user.role == 'delivery':
+            return redirect(reverse('delivery:delivery_home'))
+        categories = Category.objects.all()
+        products = Product.objects.all()
+        ctx = {
+            'categories': categories,
+            'products': products,
+        }
+        if request.user.is_authenticated:
+            print(request.user.latitude, request.user.longitude)
+        return render(request, 'home/customer_home.html', ctx)
+
+
+class SelectDelivery(LoginRequiredMixin, View):
+    def get(self, request):
+        # Debug: Print user location
+        print(f"User location - Lat: {request.user.latitude}, Lon: {request.user.longitude}")
+        
+        if not request.user.latitude or not request.user.longitude:
+            return redirect('location:choose_location')
+        
+        user_cart, created = Cart.objects.get_or_create(user=request.user)
+        cart_products = CartProducts.objects.filter(cart=user_cart).select_related('product__owner')
+        
+        # Group products by vendor
+        vendor_products = defaultdict(list)
+        for cart_product in cart_products:
+            vendor_products[cart_product.product.owner].append(cart_product.product)
+        
+        # Get all unique vendor locations
+        vendor_locations = []
+        for vendor in vendor_products.keys():
+            if vendor.latitude and vendor.longitude:
+                vendor_locations.append((vendor.latitude, vendor.longitude))
+        
+        if not vendor_locations:
+            # Handle case where no vendors have locations
+            return render(request, 'customer/select_delivery.html', {
+                'error': 'Product vendors have no location information'
+            })
+        
+        user_location = (request.user.latitude, request.user.longitude)
+        
+        # Get available delivery persons
+        deliveries = CustomUser.objects.filter(role='delivery').exclude(
+            latitude__isnull=True
+        ).exclude(
+            longitude__isnull=True
+        ).exclude(
+            cost_per_km__isnull=True
+        ).exclude(
+            latitude=0
+        ).exclude(
+            longitude=0
+        )
+        
+        delivery_list = []
+        for delivery in deliveries:
+            try:
+                delivery_location = (delivery.latitude, delivery.longitude)
+                
+                # Calculate total delivery route distance
+                total_distance = 0
+                
+                # 1. Distance from delivery person to first vendor
+                first_vendor = vendor_locations[0]
+                total_distance += geodesic(delivery_location, first_vendor).km
+                
+                # 2. Distances between vendors (if multiple vendors)
+                for i in range(len(vendor_locations) - 1):
+                    total_distance += geodesic(vendor_locations[i], vendor_locations[i+1]).km
+                
+                # 3. Distance from last vendor to customer
+                last_vendor = vendor_locations[-1]
+                total_distance += geodesic(last_vendor, user_location).km
+                
+                # Calculate estimated time (assuming 30 km/h average speed)
+                estimated_time_min = math.ceil((total_distance / 30) * 60)
+                
+                # Calculate cost
+                cost = (Decimal(str(total_distance)) * delivery.cost_per_km).quantize(Decimal('0.00'))
+                
+                delivery_list.append({
+                    'delivery': delivery,
+                    'distance_km': round(total_distance, 1),
+                    'estimated_time_min': estimated_time_min,
+                    'cost': cost,
+                    'vendor_count': len(vendor_locations)
+                })
+                
+            except Exception as e:
+                print(f"Error processing delivery {delivery.id}: {str(e)}")
+                continue
+        
+        # Sort by distance (shortest total route first)
+        delivery_list.sort(key=lambda x: x['distance_km'])
+        
+        ctx = {
+            'delivery_list': delivery_list,
+            'user_location': user_location,
+            'total_deliveries': deliveries.count(),
+            'valid_deliveries': len(delivery_list)
+        }
+        return render(request, 'customer/select_delivery.html', ctx)
+
+    def post(self, request):
+        # Get selected delivery person
+        delivery_id = request.POST.get('delivery_person')
+        if not delivery_id:
+            messages.error(request, 'Please select a delivery person')
+            return redirect('home:select_delivery')
+        
+        # Get distance and cost from hidden form fields
+        try:
+            distance = Decimal(request.POST.get('distance', 0))
+            cost = Decimal(request.POST.get('cost', 0))
+        except (TypeError, InvalidOperation):
+            messages.error(request, 'Invalid delivery parameters')
+            return redirect('home:select_delivery')
+        
+        # Get the objects needed
+        delivery_person = get_object_or_404(CustomUser, id=delivery_id, role='delivery')
+        user_cart = get_object_or_404(Cart, user=request.user)
+        
+        # Create the delivery request
+        try:
+            delivery_request = Request.objects.create(
+                sender=request.user,
+                recipient=delivery_person,
+                cart=user_cart,
+                distance=distance,
+                delivery_fee=cost,
+                status='pending'
+            )
+            
+            # Get all vendors for this order to include in notification
+            vendors = set()
+            for cart_product in user_cart.products.all():
+                vendors.add(cart_product.product.owner)
+            
+            # Here you would typically:
+            # 1. Send real-time notification to delivery person
+            # 2. Send email/SMS notification
+            # 3. Log the request
+            
+            messages.success(request, 'Delivery request sent successfully!')
+            return redirect('home:waiting_for_approval', request_id=delivery_request.id)
+            
+        except Exception as e:
+            print(f"Error creating delivery request: {str(e)}")
+            messages.error(request, 'Failed to create delivery request')
+            return redirect('home:select_delivery')
+    
+class WaitingForApproval(LoginRequiredMixin, View):
+    def get(self, request, request_id):
+        delivery_request = get_object_or_404(
+            Request,
+            id=request_id,
+            sender=request.user
+        )
+        
+        return render(request, 'customer/waiting_for_delivery_approval.html', {
+            'delivery_request': delivery_request
+        })
+    
+class DeliveryAccepted(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'customer/delivery_accepted.html', {
+            'message': 'Your delivery has been accepted!'
+        })
+
+class DeliveryRejected(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'customer/delivery_rejected.html', {
+            'message': 'The delivery person declined your request.'
+        })

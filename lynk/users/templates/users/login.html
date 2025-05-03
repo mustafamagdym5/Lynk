@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block location %}{% endblock location %}
+
+{% block content %}
+<style>
+    /* Login Page Specific Styles */
+    .login-page {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 56px); /* Account for navbar height */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem 1rem;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 600px;
+        overflow: hidden;
+    }
+
+    .auth-header {
+        background-color: #FF5000;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .auth-title {
+        font-weight: 700;
+        font-size: 2.2rem;
+        margin: 0;
+        color: white; /* Make "Welcome Back" text white */
+    }
+
+    .auth-body {
+        padding: 2.5rem;
+    }
+
+    .btn-auth {
+        background-color: #FF5000;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .btn-auth:hover {
+        background-color: #e04800;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 80, 0, 0.2);
+    }
+
+    .btn-auth:focus {
+        outline: none; /* Remove default focus outline */
+        box-shadow: 0 0 0 0.25rem rgba(255, 80, 0, 0.5); /* Custom focus shadow */
+        border-color: #FF5000; /* Optional: Match border color */
+    }
+
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #6c757d;
+    }
+
+    .auth-footer a {
+        color: #FF5000;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    /* Form styling */
+    .form-control:focus {
+        border-color: #FF5000;
+        box-shadow: 0 0 0 0.25rem rgba(255, 80, 0, 0.25);
+    }
+
+    /* Password toggle */
+    .password-toggle-container {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+    }
+</style>
+
+<div class="login-page">
+    <div class="auth-card shadow-lg">
+        <div class="auth-header">
+            <h1 class="auth-title">Welcome Back</h1>
+        </div>
+        <div class="auth-body">
+            <form method="post">
+                {% if error %}
+                <p style="color:red;" >{{ error }}</p>
+                {% endif %}
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="d-grid gap-3 mt-4">
+                    <button type="submit" class="btn btn-auth py-3">
+                        Sign In
+                    </button>
+                </div>
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+            <div class="auth-footer pt-3">
+                New to our platform? <a href="{% url 'users:register' %}">Create an account</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordField = document.querySelector('#id_password');
+        if (passwordField) {
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('password-toggle-container');
+            passwordField.parentNode.insertBefore(wrapper, passwordField);
+            wrapper.appendChild(passwordField);
+
+            const toggle = document.createElement('i');
+            toggle.classList.add('fas', 'fa-eye', 'password-toggle');
+            toggle.addEventListener('click', function() {
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    toggle.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    passwordField.type = 'password';
+                    toggle.classList.replace('fa-eye-slash', 'fa-eye');
+                }
+            });
+            wrapper.appendChild(toggle);
+        }
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

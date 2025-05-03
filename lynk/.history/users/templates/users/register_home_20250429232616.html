@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .role-selection-container {
+        min-height: 100vh;
+        background-color: #f8f9fa;
+    }
+    .role-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        max-width: 500px;
+        width: 100%;
+    }
+    .role-header {
+        background-color: #FF5000;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .role-title {
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        color: white; /* Make "Join Our Community" white */
+    }
+    .role-list {
+        padding: 2rem;
+    }
+    .role-btn {
+        background-color: white;
+        color: #495057;
+        border: 2px solid #dee2e6;
+        font-weight: 600;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        width: 100%;
+        text-align: center;
+    }
+    .role-btn:hover {
+        background-color: #FF5000;
+        color: white;
+        border-color: #FF5000;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 80, 0, 0.2);
+    }
+    .role-btn:active {
+        transform: translateY(0);
+    }
+</style>
+
+
+<div class="role-selection-container d-flex justify-content-center align-items-center p-3">
+    <div class="role-card shadow-lg">
+        <div class="role-header">
+            <h1 class="role-title">Join Our Community</h1>
+        </div>
+        <div class="role-list">
+            <div class="d-grid gap-3">
+                <a href="{% url 'users:register_customer' %}" class="role-btn">
+                    <i class="fas fa-user me-2"></i> I'm a Customer
+                </a>
+                <a href="{% url 'users:register_vendor' %}" class="role-btn">
+                    <i class="fas fa-store me-2"></i> I'm a Vendor
+                </a>
+                <a href="{% url 'users:register_delivery' %}" class="role-btn">
+                    <i class="fas fa-truck me-2"></i> I'm a Delivery Partner
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock content %}

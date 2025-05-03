@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* [Keep all your existing styles] */
+    .location-loading {
+        text-align: center;
+        padding: 20px;
+        color: #555;
+    }
+</style>
+
+<div class="location-container">
+    <h2>Select Your Location</h2>
+    <p class="map-instructions">Click anywhere on the map to place your location marker. You can drag the marker to adjust or search for a specific address.</p>
+
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search for an address or place...">
+        <button id="search-button">Search</button>
+    </div>
+
+    <div id="map">
+        <div class="location-loading" id="location-loading">
+            <p>Detecting your current location...</p>
+        </div>
+    </div>
+
+    <div class="coordinates-container">
+        <strong>Selected Location Coordinates:</strong>
+        <div id="coordinates">No location selected yet</div>
+    </div>
+
+    <button id="save-button">Save My Location</button>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    // Custom marker icon
+    var CustomIcon = L.divIcon({
+        className: 'custom-marker-icon',
+        html: '<div class="custom-marker"></div>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+    });
+
+    // Initialize the map
+    var map = L.map('map').setView([51.505, -0.09], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Variables for marker and coordinates
+    var marker = null;
+    var currentLat = null;
+    var currentLng = null;
+
+    // Function to create or update marker
+    function updateMarker(lat, lng) {
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng], {
+                draggable: true,
+                icon: CustomIcon
+            }).addTo(map);
+            
+            // Update coordinates when marker is dragged
+            marker.on('dragend', function(e) {
+                const newLatLng = e.target.getLatLng();
+                updateCoordinates(newLatLng.lat, newLatLng.lng);
+            });
+        }
+        map.setView([lat, lng], 15);
+        updateCoordinates(lat, lng);
+    }
+
+    // Function to update coordinates display
+    function updateCoordinates(lat, lng) {
+        currentLat = lat;
+        currentLng = lng;
+        document.getElementById('coordinates').innerHTML = 
+            `Latitude: <strong>${lat.toFixed(6)}</strong><br>Longitude: <strong>${lng.toFixed(6)}</strong>`;
+    }
+
+    // Handle map clicks
+    map.on('click', function(e) {
+        updateMarker(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Handle search functionality
+    document.getElementById('search-button').addEventListener('click', function() {
+        const query = document.getElementById('search-input').value.trim();
+        if (!query) return;
+
+        // Show loading state
+        const searchBtn = document.getElementById('search-button');
+        searchBtn.disabled = true;
+        searchBtn.textContent = 'Searching...';
+        
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    const firstResult = data[0];
+                    updateMarker(parseFloat(firstResult.lat), parseFloat(firstResult.lon));
+                } else {
+                    alert('Location not found. Please try a different search.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error searching for location. Please try again.');
+            })
+            .finally(() => {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search';
+            });
+    });
+
+    // Handle save functionality
+    document.getElementById('save-button').addEventListener('click', function() {
+        if (!currentLat || !currentLng) {
+            alert('Please select a location on the map first.');
+            return;
+        }
+
+        // Show loading state
+        const saveBtn = document.getElementById('save-button');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        
+        // Create a form dynamically and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{% url 'location:save_location' %}";
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrfmiddlewaretoken';
+        csrf.value = '{{ csrf_token }}';
+        form.appendChild(csrf);
+        
+        const latInput = document.createElement('input');
+        latInput.type = 'hidden';
+        latInput.name = 'latitude';
+        latInput.value = currentLat;
+        form.appendChild(latInput);
+        
+        const lngInput = document.createElement('input');
+        lngInput.type = 'hidden';
+        lngInput.name = 'longitude';
+        lngInput.value = currentLng;
+        form.appendChild(lngInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    });
+
+    // Function to get current location
+    function getCurrentLocation() {
+        const loadingElement = document.getElementById('location-loading');
+        
+        if (navigator.geolocation) {
+            loadingElement.innerHTML = '<p>Detecting your current location...</p>';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    // Success callback
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    updateMarker(lat, lng);
+                    loadingElement.style.display = 'none';
+                },
+                function(error) {
+                    // Error callback
+                    let errorMessage = "Could not detect your location. Please select a location manually.";
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = "Location access was denied. Please enable location services or select a location manually.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = "Location information is unavailable. Please select a location manually.";
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = "The request to get your location timed out. Please try again or select a location manually.";
+                            break;
+                    }
+                    
+                    loadingElement.innerHTML = `<p style="color:#FF5000">${errorMessage}</p>`;
+                    
+                    // If user has existing location, use that
+                    {% if request.user.latitude and request.user.longitude %}
+                        updateMarker({{ request.user.latitude }}, {{ request.user.longitude }});
+                        loadingElement.style.display = 'none';
+                    {% endif %}
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            loadingElement.innerHTML = '<p style="color:#FF5000">Geolocation is not supported by your browser. Please select a location manually.</p>';
+            
+            // If user has existing location, use that
+            {% if request.user.latitude and request.user.longitude %}
+                updateMarker({{ request.user.latitude }}, {{ request.user.longitude }});
+                loadingElement.style.display = 'none';
+            {% endif %}
+        }
+    }
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+        // First check if user has existing location
+        {% if request.user.latitude and request.user.longitude %}
+            updateMarker({{ request.user.latitude }}, {{ request.user.longitude }});
+            document.getElementById('location-loading').style.display = 'none';
+        {% else %}
+            // If no existing location, try to get current location
+            getCurrentLocation();
+        {% endif %}
+    });
+</script>
+{% endblock %}

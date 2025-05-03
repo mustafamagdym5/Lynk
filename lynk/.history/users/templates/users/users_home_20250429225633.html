@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg" style="width: 500px; border-radius: 15px; border: none;">
+        <div class="card-body p-5 text-center">
+            <h1 class="mb-4" style="color: #FF5000; font-weight: 700;">Welcome</h1>
+            
+            <div class="d-grid gap-3">
+                <a href="{% url 'users:login' %}" 
+                class="btn btn-lg text-white fw-bold py-3" 
+                style="background-color: #FF5000; border-radius: 8px;">
+                    Login
+                </a>
+                
+                <a href="{% url 'users:register' %}" 
+                class="btn btn-lg fw-bold py-3" 
+                style="color: #FF5000; border: 2px solid #FF5000; border-radius: 8px;">
+                    Don't have an account?
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+    
+    a[href*='login']:hover {
+        background-color: #e04800 !important;
+    }
+    
+    a[href*='register']:hover {
+        background-color: #FF5000 !important;
+        color: white !important;
+    }
+</style>
+{% endblock %}
